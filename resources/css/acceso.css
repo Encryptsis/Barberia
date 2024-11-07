@@ -1,0 +1,105 @@
+:root {
+    --header-height: 3rem;
+    --nav-width: 68px;
+    --first-color: #000000;
+    --second-color: rgba(69, 90, 100, 0.08);
+    --third-color: rgba(62, 57, 107, 0.2);
+    --background-color: #F1F1F1;
+    --form-color: #F4F7FA;
+    --body-font: 'Cambria', 'Georgia', serif;
+    --normal-font-size: 1rem;
+    --overlay-color: rgba(0, 0, 0, 0.5); /* Color de la capa opaca */
+}
+
+body {
+    background-image: url('../Imagenes/accesos.jpeg'); /* Reemplaza con la ruta de tu imagen */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    font-size: var(--normal-font-size);
+    font-family: var(--body-font);
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: var(--overlay-color);
+    z-index: -1;
+}
+
+.wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.auth-content {
+    max-width: 80%;
+    min-width: 40vw;
+    height: auto;
+    background-color: rgba(255, 255, 255, 0.9); /* Fondo semi-transparente para el contenido */
+    border-radius: 10px;
+}
+
+.auth-content .card {
+    box-shadow: var(--second-color) 0 1px 20px 0;
+    border: none;
+    background-color: transparent;
+}
+
+.auth-content .card .card-body {
+    padding: 30px 25px;
+}
+
+.auth-content .form-control {
+    background: var(--form-color);
+    min-height: 42px;
+    font-size: var(--normal-font-size); 
+    padding: 10px 15px;
+}
+
+.form-group {
+    text-align: center; 
+}
+
+.form-group label {
+    display: block; 
+}
+
+label {
+    font-size: var(--normal-font-size); 
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 0.25rem;
+    font-size: var(--normal-font-size); 
+    background-color: var(--first-color);
+    border: 2px solid var(--first-color);
+    color: white;
+}
+
+.btn:hover {
+    background-color: white;
+    color: var(--first-color);
+    border: 2px solid var(--first-color);
+}
+
+a, p {
+    font-size: calc(var(--normal-font-size)); 
+}
+
+.titulo {
+    font-size: calc(var(--normal-font-size)*1.3); 
+    font-weight: bold;
+}

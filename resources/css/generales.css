@@ -1,0 +1,468 @@
+
+@import "bootstrap/dist/css/bootstrap.min.css";
+
+/* Importar Font Awesome sin ~ */
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+
+/* Importar Bootstrap Icons sin ~ */
+@import "bootstrap-icons/font/bootstrap-icons.css";
+
+.page-background {
+    background-image: url('/public/images/background.jpeg'); /* Ruta absoluta a la imagen */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+}
+body {
+    margin: 0;
+    font-family: Cambria, Georgia, serif;
+    /* Eliminamos la definición directa del background-image */
+}
+
+
+.secciones {
+    min-height: calc(100vh - 70px);
+    height: auto;
+    background-color: rgba(0, 0, 0, 0.7); /* Fondo semi-transparente si necesitas ver la imagen debajo */
+    position: relative;
+    z-index: 1;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    top: 0;
+}
+
+
+    .partes {
+        min-height: calc(100vh - 10vh - 5vw);
+        padding: 2.5vw;
+        border-radius: 1.25vw;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        /*background-color: #25d366;*/
+    }
+
+    @media (max-width: 750px) {
+        .secciones{
+            min-height: auto;
+        }
+        .partes {
+            min-height: auto;
+        }
+    }
+
+        .contenedor_elementos {
+            border-radius: 15px; /* Redondear bordes */
+            overflow: hidden; /* Para ocultar el desbordamiento del iframe */
+            width: 100%;
+            height: 100vh;
+            object-fit: cover;
+            position: relative; /* Añadir posición relativa */
+        }
+
+            .titulo-secciones {
+                color: white; /* Cambia el color según tu diseño */
+                text-align: center; /* Centra el texto */
+                font-size: 30px; /* Ajusta el tamaño de la fuente */
+                font-weight: bold; /* Puedes cambiar el peso si lo deseas */
+                text-transform: uppercase;
+            }
+            
+            .overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5); /* Color negro con opacidad del 50% */
+            }
+
+            hr {
+                border: none; /* Elimina el borde predeterminado */
+                height: 2px; /* Altura de la línea */
+                background-color: white; /* Color de la línea */
+                margin: 20px 0; /* Espaciado vertical */
+            }
+
+/*IMAGEN GRANDE*/
+.hero-image {
+    width: 100%;
+    height: 100vh;
+    object-fit: cover;
+    position: relative; /* Añadir posición relativa */
+}
+
+/* NAVBAR */
+.navbar {
+    color: white; 
+    background-color: rgba(24, 28, 20, 0.8); /* Fondo semi-transparente */
+    position: absolute; /* Cambiar a posición absoluta */
+    top: 0; /* Alinear al top */
+    left: 0;
+    right: 0;
+    z-index: 10; /* Asegurar que esté por encima de otros elementos */
+    min-height: 3.5rem;
+    max-height: auto;
+    align-items: center;
+}
+
+.info-bar {
+    background-color: #000000; 
+    color: white; 
+    padding: 10px 20px;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    height: 1.5rem;
+    border-bottom: 0.5px solid white;
+    font-size: 0.9rem;
+}
+
+.social-icons a {
+    color: white; 
+    margin-left: 10px; 
+}
+
+.navbar-brand, .navbar-nav .nav-link {
+    color: white; 
+    font-size: 1.0rem;
+}
+
+.navbar-nav .nav-link:hover{
+    color: #EAD8B1; 
+}
+
+.navbar-brand:hover{
+    color: white; 
+}
+
+.navbar {
+    margin-top: 1.5rem;
+}
+
+.navbar-toggler {
+    border-color: white; 
+    height: auto;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Cpath stroke='white' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); 
+}
+
+
+
+/* FOOTER */
+footer {
+    background-color: #000000;
+    height: 20vh; /* Altura reducida a 20vh */
+    width: 100;
+    padding: 0rem 2rem; /* Padding: 0 rem arriba y abajo, 2 rem a los costados */
+    display: flex;
+    align-items: center; /* Centrar verticalmente */
+    justify-content: center; /* Centrar horizontalmente */
+    color: white;
+    font-size: 1.0rem;
+}
+
+.footer-content {
+    display: flex;
+    align-items: center; /* Alinear verticalmente */
+    justify-content: center; /* Centrar horizontalmente */
+    text-align: center; /* Centrar el texto */
+}
+
+.text-content {
+    display: flex;
+    flex-direction: column; /* Colocar texto en columna */
+    margin-right: 0.1rem; /* Espacio entre texto e imagen */
+}
+
+.footer-image {
+    max-width: 100px; /* Ajustar el tamaño de la imagen */
+    height: auto; /* Mantener la proporción de la imagen */
+}
+
+
+/* BOTONES LATERALES */
+.float-wa {
+    position: fixed;
+    width: 8vh;
+    height: 8vh;
+    bottom: 40px;
+    right: 0.2rem;
+    background-color: #25d366; /* Color verde de WhatsApp */
+    color: #FFF;
+    border-radius: 50%; /* Botón redondeado */
+    font-size: 1.2rem;
+    z-index: 100; /* Asegura que esté por encima de otros elementos */
+    border: 2px solid #25d366;
+}
+    .float-wa:hover {
+        background-color: #FFF; /* Color verde de WhatsApp */
+        color: #25d366;
+    }
+
+.scroll-to-top {
+    position: fixed;
+    width: 8vh;
+    height: 8vh;
+    bottom: 110px; 
+    right: 0.2rem;
+    background-color: #6f4c3e; /* Color café */
+    color: #FFF;
+    border-radius: 50%; /* Botón redondeado */
+    font-size: 1.2rem;
+    z-index: 100; /* Asegura que esté por encima de otros elementos */
+    border: 2px solid #6f4c3e;
+}
+    .scroll-to-top:hover {
+        background-color: #FFF; /* Color café */
+        color: #6f4c3e;
+    }
+
+
+/*APARTADO DEL VIDEO*/
+.video-container {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; 
+    overflow: hidden;
+}
+
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/*INFORMACIÓN*/
+.wild_deer_info {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    color: antiquewhite;
+}
+.info {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.info h2 {
+    font-size: 1.5rem;
+    margin-bottom: -0.5rem;
+}
+.info-1 p {
+    text-align: center;
+}
+.info-2 p {
+    text-align: center;
+    overflow: hidden;
+}
+.info-2 img {
+    width: 100%;
+    height: 50vh;
+    object-fit: cover;
+    margin-left: 0;
+    border-radius: 8px;
+}
+
+@media (min-width: 1000px) {
+    .wild_deer_info {
+        flex-direction: row;
+    }
+    .info-1 {
+        flex: 3;
+    }
+    .info-2 {
+        flex: 7;
+    }
+    .info-2 img {
+        margin-left: 0.8rem;
+        margin-top: 0; /* Elimina el margen superior en pantallas grandes */
+        height: 100%; /* Cambiado de 100% a auto */
+    }
+}
+
+/*CARRUSEL DE SERVICIOS*/
+.carrusel {
+    position: relative;
+    width: 100%;
+    margin: auto;
+    overflow: hidden;
+}
+
+.carrusel-inner {
+    display: flex;
+    transition: transform 0.5s ease;
+}
+.card {
+    min-width: 300px;
+    height: auto;
+    margin: 10px;
+    padding: 10px;
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+/* Media query para pantallas pequeñas */
+@media (max-width: 600px) {
+    .card {
+        height: auto;
+        min-width: 70vw; /* Ancho para pantallas pequeñas */
+        padding: 5px; /* Menos padding en pantallas pequeñas */
+    }
+}
+
+.card-img-top {
+    width: 100%;
+    border-radius: 8px;
+}
+
+.prev, .next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255, 255, 255, 0.8);
+    border: none;
+    cursor: pointer;
+    height: 5rem;
+    padding: 1rem;
+    color: #000000;
+    font-weight: bold;
+    border-radius: 8px;
+}
+
+.prev {
+    left: 10px;
+}
+
+.next {
+    right: 10px;
+}
+
+.card-text{
+    margin:  0.2rem;
+    font-size: 0.9rem;
+    text-align: justify;
+}
+
+
+
+/*SLIDER*/
+.slider-container {
+    width: 100%;
+    height: 90vh;
+    object-fit: cover;
+    position: relative; /* Añadir posición relativa */
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Controla el desbordamiento */
+    padding: 0;
+}
+
+.slider-container > * {
+    flex-shrink: 1; /* Permite que se reduzcan */
+    max-height: 100%;
+    max-width: 100%; /* Evita que se desborden horizontalmente */
+    margin: 0; /* Elimina márgenes indeseados */
+}
+.slider-images{
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+.slider-images img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+}
+.slider-img{
+    width: 100px;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: 0.7s ease;
+}
+.slider-images .slider-img:first-child, .slider-images .slider-img:last-child{
+    height: 450px;
+}
+.slider-images .slider-img:nth-child(2), .slider-images .slider-img:nth-child(6){
+    height: 500px;
+}
+.slider-images .slider-img:nth-child(3), .slider-images .slider-img:nth-child(4), .slider-images .slider-img:nth-child(5){
+    height: 450px;
+}
+
+.car{
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    align-items: center;
+    text-transform: uppercase;
+    color: #fff;
+    position: absolute;
+    top: 50%;
+    left: -30px;
+    right: -30px;
+    transform: rotate(270deg);
+}
+
+.details{
+    position: absolute;
+    bottom: 2rem;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.details .car2{
+    font-size: 26px;
+    font-weight: 700;
+    text-align: left;
+    line-height: 44px;
+    text-align: left;
+    color: #fff;
+    text-transform: uppercase;
+    display: none;
+}
+
+.details .car3{
+    font-size: 20px;
+    font-weight: 700;
+    text-align: left;
+    line-height: 33px;
+    text-align: left;
+    color: #fff;
+    text-transform: uppercase;
+    transition: 0.7s ease;
+    display: none;
+}
+
+.slider-img.active{
+    width: 700px !important;
+    height: 100vh !important;
+}
+
+.slider-img.active h1{
+    display: none;
+}
+
+.slider-img.active .details p, .slider-img.active .details h2{
+    display: block;
+}
