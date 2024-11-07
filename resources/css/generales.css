@@ -82,11 +82,13 @@ body {
             }
 
             hr {
-                border: none; /* Elimina el borde predeterminado */
-                height: 2px; /* Altura de la línea */
-                background-color: white; /* Color de la línea */
-                margin: 20px 0; /* Espaciado vertical */
+                border: none;
+                height: 2px;
+                background-color: #FFFFFF; /* Blanco puro */
+                margin: 20px 0;
+                opacity: 1; /* Asegura que esté al 100% de opacidad */
             }
+            
 
 /*IMAGEN GRANDE*/
 .hero-image {

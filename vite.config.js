@@ -9,7 +9,8 @@ export default defineConfig({
             input: [
                 'resources/css/generales.css',
                 'resources/css/preloader.css',
-                'resources/js/app.js',
+                'resources/js/index.js',        // Añadir index.js
+                'resources/js/preloader.js',
             ],
             refresh: true,
         }),

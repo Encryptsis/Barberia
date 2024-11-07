@@ -16,7 +16,7 @@
     <body class="page-background">
     <!-- Cabecera -->
     @include('partials.header')
-
+    
     <!-- Contenido Principal -->
     <div">
         @yield('content')
@@ -24,6 +24,12 @@
 
     <!-- Pie de Página -->
     @include('partials.footer')
+
+    <!-- Cargar jQuery desde CDN -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    
+    <!-- Vincular JS General con Vite -->
+    @vite(['resources/js/index.js'])
 
     <!-- Scripts adicionales (si es necesario) -->
     @stack('scripts')

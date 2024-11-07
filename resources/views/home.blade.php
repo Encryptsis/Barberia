@@ -5,6 +5,7 @@
 @section('title', 'Página de Inicio')
 
 @section('content')
+
 <img src="{{ Vite::asset('resources/images/wildbeer_barbershp&bar.jpeg') }}" alt="barber" class="hero-image"/>
 <section class="secciones">
     <h2 class="titulo-secciones"><i class="bi bi-file-person-fill"></i> THE DEER TEAM</h2>
@@ -206,3 +207,7 @@
     
 </section>
 @endsection
+
+@push('scripts')
+    @vite(['resources/js/index.js', 'resources/js/preloader.js'])
+@endpush
