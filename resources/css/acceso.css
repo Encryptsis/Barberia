@@ -12,7 +12,7 @@
 }
 
 body {
-    background-image: url('../Imagenes/accesos.jpeg'); /* Reemplaza con la ruta de tu imagen */
+    background-image: url('/resources/images/accesos.jpeg'); /* Reemplaza con la ruta de tu imagen */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
