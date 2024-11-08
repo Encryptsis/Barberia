@@ -5,7 +5,7 @@
 @section('title', 'Página de Inicio')
 
 @section('content')
-<body>
+
 
 <!-- Agrega el preloader aquí -->
 <div id="preloader">
@@ -214,7 +214,7 @@
 
     
 </section>
-</body>
+
 @endsection
 @push('scripts')
     @vite(['resources/js/index.js', 'resources/js/preloader.js'])

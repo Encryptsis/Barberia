@@ -1,4 +1,7 @@
 
+import { Calendar } from '@fullcalendar/core';
+import timeGridPlugin from '@fullcalendar/timegrid';
+
 window.addEventListener('scroll', function () {
     const navbar = document.querySelector('.navbar');
     if (window.scrollY > 50) {
