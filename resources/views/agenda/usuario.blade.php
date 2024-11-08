@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Página de Inicio')
+@section('title', 'Agenda')
 
 @section('content')
     <style>
@@ -43,9 +43,6 @@
             }
         }
     </style>
-
-
-
 
     <section class="secciones" style="margin-top: 3.5rem;">
         <h2 class="titulo-secciones">Schedule Appointment</h2>
