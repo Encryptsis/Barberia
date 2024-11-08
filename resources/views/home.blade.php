@@ -5,6 +5,14 @@
 @section('title', 'Página de Inicio')
 
 @section('content')
+<body>
+
+<!-- Agrega el preloader aquí -->
+<div id="preloader">
+    <div class="contieneloader">
+        <div class="loader"></div>
+    </div>
+</div>
 
 <img src="{{ Vite::asset('resources/images/wildbeer_barbershp&bar.jpeg') }}" alt="barber" class="hero-image"/>
 <section class="secciones">
@@ -206,8 +214,8 @@
 
     
 </section>
+</body>
 @endsection
-
 @push('scripts')
     @vite(['resources/js/index.js', 'resources/js/preloader.js'])
 @endpush
