@@ -99,19 +99,19 @@
         <div class="edit-form" id="editForm">
             <h3 class="text-center">Edit Profile</h3>
             <form id="formEdit">
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="nombreInput">Name:</label>
                     <input type="text" class="form-control" id="nombreInput" placeholder="Ingrese el nombre" value="Juan Pérez">
                 </div>
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="correoInput">E-mail:</label>
                     <input type="email" class="form-control" id="correoInput" placeholder="Ingrese el correo electrónico" value="juan.perez@example.com">
                 </div>
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="telefonoInput">Phone:</label>
                     <input type="tel" class="form-control" id="telefonoInput" placeholder="Ingrese el número de teléfono" value="+34 123 456 789">
                 </div>
-                <div class="form-group">
+                <div class="mb-3">
                     <label for="fotoInput">Photo:</label>
                     <input type="file" class="form-control" id="fotoInput">
                 </div>
