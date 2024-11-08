@@ -17,15 +17,16 @@
     </button>
     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <ul class="navbar-nav">
-            <li class="nav-item active ">
-                <a class="nav-link" href="#">Start</a>
+            <li class="nav-item {{ Request::routeIs('home') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('home') }}">Home</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="Vista/Paginas/login.html">Login</a>
+            <li class="nav-item {{ Request::routeIs('auth.login') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('auth.login') }}">Login</a>
             </li>
-            <li class="nav-item me-3">
-                <a class="nav-link" href="Vista/Paginas/registro.html">Create Account</a>
+            <li class="nav-item me-3 {{ Request::routeIs('auth.register') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('auth.register') }}">Sign Up</a>
             </li>
         </ul>
+        
     </div>
 </nav>
