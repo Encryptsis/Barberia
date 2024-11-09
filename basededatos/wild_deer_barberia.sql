@@ -135,6 +135,18 @@ CREATE TABLE pagos (
     INDEX idx_estado_pago_id (pago_estado_pago_id)
 );
 
+-- 11. Sessions (para almacenar sesiones en la base de datos)
+CREATE TABLE sessions (
+    id VARCHAR(255) PRIMARY KEY,
+    user_id INT NULL,
+    ip_address VARCHAR(45) NULL,
+    user_agent TEXT NULL,
+    payload TEXT NOT NULL,
+    last_activity INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES usuarios(usr_id) ON DELETE CASCADE
+);
+
+
 -- INSERCIONES --
 
 -- Inserción de roles en la tabla `roles`
