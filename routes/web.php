@@ -7,30 +7,34 @@ use App\Http\Controllers\HomeController;
 // Ruta de inicio (home) accesible para todos
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-
+// Rutas protegidas por middleware 'auth'
 Route::middleware(['auth'])->group(function () {
     Route::get('agenda/usuario', function () {
-        return view('agenda.usuario');
+        return view('agenda.usuario'); // Asegúrate de que exista la vista en resources/views/agenda/usuario.blade.php
     })->name('agenda.usuario');
 
     Route::get('perfil/usuario', function () {
-        return view('perfil.usuario');
+        return view('perfil.usuario'); // Asegúrate de que exista la vista en resources/views/perfil/usuario.blade.php
     })->name('perfil.usuario');
+
+    // Ruta de cierre de sesión
+    Route::post('/logout', [UsuarioController::class, 'logout'])->name('logout');
 });
 
+// Rutas para autenticación y registro (solo para invitados)
+Route::middleware(['guest'])->group(function () {
+    // Ruta de inicio de sesión
+    Route::get('/login', [UsuarioController::class, 'loginForm'])->name('login');
+    Route::post('/login', [UsuarioController::class, 'login'])->name('login.submit');
 
+    // Ruta para mostrar el formulario de registro
+    Route::get('/register', [UsuarioController::class, 'create'])->name('register');
 
-// Ruta de inicio de sesión (si aún no la tienes definida)
-Route::get('/login', [UsuarioController::class, 'loginForm'])->name('login');
-Route::post('/login', [UsuarioController::class, 'login'])->name('login.submit');
-Route::post('/logout', [UsuarioController::class, 'logout'])->name('logout')->middleware('auth');
+    // Ruta para procesar el formulario de registro
+    Route::post('/register', [UsuarioController::class, 'store'])->name('register.store');
+});
 
-// Ruta para mostrar el formulario de registro
-Route::get('/register', [UsuarioController::class, 'create'])->name('register');
-
-// Ruta para procesar el formulario de registro
-Route::post('/register', [UsuarioController::class, 'store'])->name('register.store');
-
+// Ruta de prueba de base de datos
 Route::get('/test-db', function () {
     try {
         DB::connection()->getPdo();

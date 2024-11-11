@@ -2,7 +2,7 @@
 
 @extends('layouts.auth')
 
-@section('title', 'Perfil')
+@section('title', 'Login')
 
 @section('content')
 
@@ -14,22 +14,41 @@
                     <div class="mb-4">
                         <p class="titulo text-center">Welcome, Log in</p>
                     </div>
+
+                    <!-- Mostrar mensajes de éxito -->
+                    @if(session('success'))
+                        <div class="alert alert-success">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
+                    <!-- Mostrar errores de validación -->
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     
-                    <form action="perfil_cliente.html" method="POST" autocomplete="on">
+                    <form action="{{ route('login.submit') }}" method="POST" autocomplete="on">
                         @csrf
                         
                         <div class="mb-3">
-                            <label for="usuario" class="form-label">User:</label>
+                            <label for="usr_username" class="form-label">Username:</label>
                             <input 
                                 type="text" 
-                                class="form-control @error('usuario') is-invalid @enderror" 
-                                id="usuario" 
-                                name="usuario" 
-                                value="{{ old('usuario') }}" 
+                                class="form-control @error('usr_username') is-invalid @enderror"
+                                id="usr_username" 
+                                name="usr_username"  
+                                value="{{ old('usr_username') }}"
                                 required 
                                 autofocus
                             >
-                            @error('usuario')
+                            @error('usr_username')
                                 <div class="invalid-feedback">
                                     {{ $message }}
                                 </div>
@@ -37,15 +56,15 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="clave" class="form-label">Password:</label>
+                            <label for="usr_password" class="form-label">Password:</label>
                             <input 
                                 type="password" 
-                                class="form-control @error('clave') is-invalid @enderror" 
-                                id="clave" 
-                                name="clave" 
+                                class="form-control @error('usr_password') is-invalid @enderror" 
+                                id="usr_password" 
+                                name="usr_password" 
                                 required
                             >
-                            @error('clave')
+                            @error('usr_password')
                                 <div class="invalid-feedback">
                                     {{ $message }}
                                 </div>
@@ -64,8 +83,8 @@
                     <hr>
                     
                     <div class="mt-3 text-center">
-                        <p class="mb-0">Do you already have an account?</p>
-                        <a href="registro.html" class="registro-link"> Register</a>
+                        <p class="mb-0">Don't have an account yet?</p>
+                        <a href="{{ route('register') }}" class="registro-link"> Register</a>
                     </div>
                 </div>
             </div>

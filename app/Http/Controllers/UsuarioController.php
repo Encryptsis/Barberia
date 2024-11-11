@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Usuario;
-use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -45,8 +44,6 @@ class UsuarioController extends Controller
 
         // Autenticar al usuario recién registrado
         Auth::login($usuario);
-        // Depurar el usuario autenticado
-        //dd(Auth::user());
 
         // Verificar si el usuario está autenticado
         if (Auth::check()) {
@@ -56,7 +53,6 @@ class UsuarioController extends Controller
             // Si no está autenticado, redireccionar al inicio de sesión
             return redirect()->route('login')->with('error', 'No se pudo iniciar sesión automáticamente. Por favor, inicia sesión.');
         }
-
     }
 
     /**
@@ -79,15 +75,11 @@ class UsuarioController extends Controller
         ]);
 
         // Intentar autenticar al usuario
-        if (Auth::attempt([
-            'usr_username' => $credentials['usr_username'],
-            'usr_password' => $credentials['usr_password'],
-            'usr_activo' => true
-        ])) {
+        if (Auth::attempt(['usr_username' => $credentials['usr_username'], 'password' => $credentials['usr_password'], 'usr_activo' => true])) {
             // Autenticación exitosa
             $request->session()->regenerate();
 
-            return redirect()->intended('home')->with('success', 'Has iniciado sesión correctamente.');
+            return redirect()->route('home')->with('success', 'Has iniciado sesión correctamente.');
         }
 
         // Autenticación fallida
@@ -95,7 +87,6 @@ class UsuarioController extends Controller
             'usr_username' => 'Las credenciales proporcionadas no coinciden con nuestros registros o el usuario está inactivo.',
         ])->onlyInput('usr_username');
     }
-
 
     /**
      * Procesar el cierre de sesión.
@@ -107,6 +98,6 @@ class UsuarioController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login')->with('success', 'Has cerrado sesión exitosamente.');
+        return redirect('/')->with('success', 'Has cerrado sesión exitosamente.');
     }
 }
