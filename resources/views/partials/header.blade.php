@@ -17,16 +17,38 @@
     </button>
     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <ul class="navbar-nav">
+            <!-- Enlace Home, siempre visible -->
             <li class="nav-item {{ Request::routeIs('home') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ route('home') }}">Home</a>
             </li>
-            <li class="nav-item {{ Request::routeIs('auth.login') ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('auth.login') }}">Login</a>
-            </li>
-            <li class="nav-item me-3 {{ Request::routeIs('auth.register') ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('auth.register') }}">Sign Up</a>
-            </li>
+            
+            @if (Auth::check())
+                <!-- Enlaces visibles solo para usuarios autenticados -->
+                <li class="nav-item {{ Request::routeIs('perfil.usuario') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('perfil.usuario') }}">Profile</a>
+                </li>
+                <li class="nav-item {{ Request::routeIs('agenda.usuario') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('agenda.usuario') }}">Agenda</a>
+                </li>
+                <!-- Enlace para cerrar sesión -->
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('logout') }}"
+                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        Logout
+                    </a>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                        @csrf
+                    </form>
+                </li>
+            @else
+                <!-- Enlaces visibles solo para invitados -->
+                <li class="nav-item {{ Request::routeIs('login') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('login') }}">Login</a>
+                </li>
+                <li class="nav-item me-3 {{ Request::routeIs('register') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('register') }}">Sign Up</a>
+                </li>
+            @endif
         </ul>
-        
     </div>
 </nav>

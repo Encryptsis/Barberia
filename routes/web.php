@@ -1,27 +1,35 @@
 <?php
-
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\HomeController;
 
-Route::get('/', function () {
-    return view('home');
-})->name('home');
+// Ruta de inicio (home) accesible para todos
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::get('agenda/usuario', function () {
-    return view('agenda.usuario'); // Asegúrate de que exista la vista en resources/views/agenda/usuario.blade.php
-})->name('agenda.usuario');
 
-Route::get('perfil/usuario', function () {
-    return view('perfil.usuario'); // Asegúrate de que exista la vista en resources/views/agenda/usuario.blade.php
-})->name('perfil.usuario');
+Route::middleware(['auth'])->group(function () {
+    Route::get('agenda/usuario', function () {
+        return view('agenda.usuario');
+    })->name('agenda.usuario');
 
-Route::get('login', function () {
-    return view('auth.login'); // Asegúrate de que exista la vista en resources/views/agenda/usuario.blade.php
-})->name('auth.login');
+    Route::get('perfil/usuario', function () {
+        return view('perfil.usuario');
+    })->name('perfil.usuario');
+});
 
-Route::get('register', function () {
-    return view('auth.register'); // Asegúrate de que exista la vista en resources/views/agenda/usuario.blade.php
-})->name('auth.register');
+
+
+// Ruta de inicio de sesión (si aún no la tienes definida)
+Route::get('/login', [UsuarioController::class, 'loginForm'])->name('login');
+Route::post('/login', [UsuarioController::class, 'login'])->name('login.submit');
+Route::post('/logout', [UsuarioController::class, 'logout'])->name('logout')->middleware('auth');
+
+// Ruta para mostrar el formulario de registro
+Route::get('/register', [UsuarioController::class, 'create'])->name('register');
+
+// Ruta para procesar el formulario de registro
+Route::post('/register', [UsuarioController::class, 'store'])->name('register.store');
 
 Route::get('/test-db', function () {
     try {
