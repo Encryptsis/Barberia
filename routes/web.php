@@ -7,17 +7,12 @@ use App\Http\Controllers\HomeController;
 // Ruta de inicio (home) accesible para todos
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+
 // Rutas protegidas por middleware 'auth'
 Route::middleware(['auth'])->group(function () {
-    Route::get('agenda/usuario', function () {
-        return view('agenda.usuario'); // Asegúrate de que exista la vista en resources/views/agenda/usuario.blade.php
-    })->name('agenda.usuario');
-
-    Route::get('perfil/usuario', function () {
-        return view('perfil.usuario'); // Asegúrate de que exista la vista en resources/views/perfil/usuario.blade.php
-    })->name('perfil.usuario');
-
-    // Ruta de cierre de sesión
+    Route::get('agenda/usuario', [UsuarioController::class, 'agenda'])->name('agenda.usuario');
+    Route::get('perfil/usuario', [UsuarioController::class, 'perfil'])->name('perfil.usuario');
+    Route::post('perfil/usuario', [UsuarioController::class, 'actualizarPerfil'])->name('perfil.actualizar');
     Route::post('/logout', [UsuarioController::class, 'logout'])->name('logout');
 });
 

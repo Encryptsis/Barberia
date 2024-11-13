@@ -6,6 +6,7 @@ use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage; // Importación añadida
 
 class UsuarioController extends Controller
 {
@@ -100,4 +101,75 @@ class UsuarioController extends Controller
 
         return redirect('/')->with('success', 'Has cerrado sesión exitosamente.');
     }
+
+    /**
+     * Mostrar la página de perfil del usuario.
+     */
+    public function perfil()
+    {
+        $usuario = Auth::user(); // Obtener el usuario autenticado
+
+        // Verificar si el usuario está autenticado
+        if (!$usuario) {
+            return redirect()->route('login')->with('error', 'Debes iniciar sesión para acceder a tu perfil.');
+        }
+
+        return view('perfil.usuario', compact('usuario'));
+    }
+
+    /**
+     * Actualizar la información del perfil del usuario.
+     */
+    public function actualizarPerfil(Request $request)
+    {
+        $usuario = Auth::user();
+        
+        // Validar los datos del formulario
+        $validatedData = $request->validate([
+            'usr_nombre_completo' => 'required|string|max:100',
+            'usr_correo_electronico' => 'required|email|max:100|unique:usuarios,usr_correo_electronico,' . $usuario->usr_id . ',usr_id',
+            'usr_telefono' => 'nullable|string|max:20',
+            'usr_foto_perfil' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Opcional: validar la foto
+        ]);
+    
+        // Actualizar los campos
+        $usuario->usr_nombre_completo = $validatedData['usr_nombre_completo'];
+        $usuario->usr_correo_electronico = $validatedData['usr_correo_electronico'];
+        $usuario->usr_telefono = $validatedData['usr_telefono'];
+    
+        // Manejar la subida de la foto de perfil si existe
+        if ($request->hasFile('usr_foto_perfil')) {
+            // Eliminar la foto anterior si existe
+            if ($usuario->usr_foto_perfil) {
+                // Extraer la ruta relativa ('fotos_perfil/filename.jpg')
+                $fotoAnterior = str_replace('storage/', '', $usuario->usr_foto_perfil);
+                if (Storage::disk('public')->exists($fotoAnterior)) {
+                    Storage::disk('public')->delete($fotoAnterior);
+                }
+            }
+    
+            $image = $request->file('usr_foto_perfil');
+            $name = time() . '_' . preg_replace('/\s+/', '_', $image->getClientOriginalName()); // Reemplaza espacios por guiones bajos
+            $path = $image->storeAs('fotos_perfil', $name, 'public'); // Almacenar en el disco 'public'
+    
+            // Actualizar la ruta de la foto en el usuario
+            $usuario->usr_foto_perfil = $path; // 'fotos_perfil/filename.jpg'
+        }
+    
+        $usuario->save();
+    
+        return redirect()->route('perfil.usuario')->with('success', 'Perfil actualizado exitosamente.');
+    }
+
+    public function agenda()
+{
+    // Aquí puedes obtener la información necesaria para la vista de la agenda
+    // Ejemplo:
+    $usuario = Auth::user(); // Obtener el usuario autenticado
+    // Agregar lógica para obtener citas, eventos, etc. relacionados con la agenda.
+
+    return view('agenda.usuario', compact('usuario'));
+}
+
+    
 }
