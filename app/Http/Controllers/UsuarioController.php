@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Usuario;
 use Illuminate\Http\Request;
+use App\Models\Servicio;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage; // Importación añadida
@@ -162,14 +163,34 @@ class UsuarioController extends Controller
     }
 
     public function agenda()
-{
-    // Aquí puedes obtener la información necesaria para la vista de la agenda
-    // Ejemplo:
-    $usuario = Auth::user(); // Obtener el usuario autenticado
-    // Agregar lógica para obtener citas, eventos, etc. relacionados con la agenda.
+    {
+        $usuario = Auth::user(); // Obtener el usuario autenticado
 
-    return view('agenda.usuario', compact('usuario'));
-}
+        // Obtener todos los servicios desde la base de datos
+        $servicios = Servicio::all();
+
+        // Pasar los servicios y el usuario a la vista 'usuario'
+        return view('agenda.usuario', compact('usuario', 'servicios'));
+    }
+
+    public function getProfessionals($service_id)
+    {
+        // Validar que el servicio existe
+        $servicio = Servicio::find($service_id);
+        if (!$servicio) {
+            return response()->json(['error' => 'Servicio no encontrado.'], 404);
+        }
+    
+        // Obtener los usuarios (profesionales) que pueden realizar el servicio
+        $profesionales = $servicio->usuarios()
+            ->where('usuarios.usr_activo', 1) // Especificar la tabla para evitar ambigüedad
+            ->get(['usuarios.usr_id', 'usuarios.usr_nombre_completo']);
+    
+        // Devolver los profesionales en formato JSON
+        return response()->json($profesionales);
+    }
+    
 
     
 }
+    

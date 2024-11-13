@@ -14,6 +14,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('perfil/usuario', [UsuarioController::class, 'perfil'])->name('perfil.usuario');
     Route::post('perfil/usuario', [UsuarioController::class, 'actualizarPerfil'])->name('perfil.actualizar');
     Route::post('/logout', [UsuarioController::class, 'logout'])->name('logout');
+
+    // Nueva ruta para obtener profesionales por servicio
+    Route::get('/get-professionals/{service_id}', [UsuarioController::class, 'getProfessionals'])->name('get.professionals');
 });
 
 // Rutas para autenticación y registro (solo para invitados)

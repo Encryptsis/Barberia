@@ -6,17 +6,16 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Ejecutar los seeders de la base de datos.
-     *
-     * @return void
-     */
     public function run()
     {
-        // Llamar al seeder de roles
-        $this->call(RolesTableSeeder::class);
-        
-        // Puedes llamar a otros seeders aquí si los tienes
-        // $this->call(UsuariosTableSeeder::class);
+        $this->call([
+            RolesTableSeeder::class,
+            ServiciosSeeder::class,
+            TiposAccionSeeder::class,
+            MetodosPagoSeeder::class,
+            EstadosPagosSeeder::class,
+            UsuariosSeeder::class,
+            UsuariosServiciosSeeder::class
+        ]);
     }
 }

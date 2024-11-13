@@ -3,7 +3,11 @@
 @section('title', 'Agenda')
 
 @section('content')
+    <!-- Inclusión de CSS de FullCalendar -->
+    <link href='https://unpkg.com/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
+
     <style>
+        /* Tus estilos existentes aquí */
         body {
             margin: 0;
             font-family: Cambria, Georgia, serif;
@@ -23,7 +27,7 @@
         #calendar {
             max-width: 900px; /* Tamaño del calendario */
             margin: auto;
-            max-height: 400px;
+            height: 600px; /* Ajusta según tus necesidades */
         }
         .fc-event {
             background-color: green; /* Color de las citas agendadas */
@@ -40,6 +44,7 @@
         @media (max-width: 768px) {
             #calendar {
                 width: 100%; /* Hacer el calendario responsive */
+                height: auto; /* Ajustar la altura automáticamente */
             }
         }
         /* Estilos para el formulario multistep */
@@ -53,16 +58,18 @@
             counter-reset: step;
             margin-bottom: 30px;
             overflow: hidden;
+            padding-left: 0;
         }
         .progressbar li {
             list-style-type: none;
             color: gray;
             text-transform: uppercase;
             font-size: 12px;
-            width: 20%;
+            width: 25%; /* Cambiar a 25% para 4 pasos */
             float: left;
             position: relative;
             text-align: center;
+            padding: 10px 0;
         }
         .progressbar li:before {
             content: counter(step);
@@ -101,6 +108,29 @@
         .progressbar li.active + li:after {
             background-color: green;
         }
+        /* Estilos para botones */
+        .btn {
+            margin: 5px;
+        }
+        /* Estilos para el resumen */
+        #summary p {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        /* Estilos para mensajes de confirmación */
+        .alert-success {
+            background-color: rgba(40, 167, 69, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+        }
     </style>
 
     <section class="secciones" style="margin-top: 3.5rem;">
@@ -119,19 +149,15 @@
             <div class="step active" id="step-1">
                 <h4 class="form-label">Selecciona tu Servicio</h4>
                 <form id="form-step-1">
+                    @csrf <!-- Añade el token CSRF para proteger el formulario -->
                     <div class="form-group">
                         <label for="service" class="form-label">Servicio</label>
                         <select class="form-control" id="service" name="service" required>
                             <option value="">Seleccionar...</option>
-                            <option value="Corte">Corte de Pelo</option>
-                            <option value="Afeitado">Afeitado</option>
-                            <option value="Facial">Facial</option>
-                            <option value="Masaje">Masaje</option>
-                            <option value="Tinte">Tinte</option>
-                            <option value="Corte de Cabello">Corte de Cabello</option>
-                            <option value="Corte de Barba">Corte de Barba</option>
-                            <option value="Estilo">Estilo</option>
-                        </select>
+                            @foreach($servicios as $servicio)
+                                <option value="{{ $servicio->srv_id }}">{{ $servicio->srv_nombre }}</option>
+                            @endforeach
+                        </select>                        
                     </div>
                     <div class="form-group">
                         <label for="attendant" class="form-label">Seleccionar Profesional</label>
@@ -140,7 +166,7 @@
                             <!-- Las opciones se llenarán dinámicamente según el servicio seleccionado -->
                         </select>
                         <small id="no-professionals" class="form-text text-danger" style="display:none;">
-                            No hay personal disponible para ese día, elige una fecha diferente.
+                            No hay personal disponible para ese servicio. Por favor, elige otro servicio.
                         </small>
                     </div>
                     <button type="button" class="btn btn-primary next-step">Siguiente</button>
@@ -175,13 +201,6 @@
                 <button type="button" class="btn btn-primary" onclick="window.location.reload();">Agendar Otra Cita</button>
             </div>
         </div>
-
-        <div id="calendar-selection" style="display:none;">
-            <!-- Calendario para la selección de fecha y hora -->
-            <div id="calendar-container">
-                <div id="calendar"></div>
-            </div>
-        </div>
     </section>
 
     <!-- Modal para agregar servicios adicionales -->
@@ -195,27 +214,26 @@
                     </button>
                 </div>
                 <form id="additional-services-form">
+                    @csrf <!-- Añade el token CSRF para proteger el formulario -->
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="additional-service" class="form-label">Selecciona Servicio</label>
                             <select class="form-control" id="additional-service" name="additional_service" required>
                                 <option value="">Seleccionar...</option>
-                                <option value="Corte">Corte de Pelo</option>
-                                <option value="Afeitado">Afeitado</option>
-                                <option value="Facial">Facial</option>
-                                <option value="Masaje">Masaje</option>
-                                <option value="Tinte">Tinte</option>
-                                <option value="Corte de Cabello">Corte de Cabello</option>
-                                <option value="Corte de Barba">Corte de Barba</option>
-                                <option value="Estilo">Estilo</option>
+                                @foreach($servicios as $servicio)
+                                    <option value="{{ $servicio->srv_id }}">{{ $servicio->srv_nombre }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="additional-attendant" class="form-label">Seleccionar Profesional</label>
                             <select class="form-control" id="additional-attendant" name="additional_attendant" required>
                                 <option value="">Seleccionar...</option>
-                                <!-- Opciones dinámicas -->
+                                <!-- Las opciones se llenarán dinámicamente según el servicio seleccionado -->
                             </select>
+                            <small id="no-professionals-add" class="form-text text-danger" style="display:none;">
+                                No hay personal disponible para ese servicio. Por favor, elige otro servicio.
+                            </small>
                         </div>
                         <div class="form-group">
                             <label for="additional-time" class="form-label">Seleccionar Hora</label>
@@ -230,5 +248,44 @@
             </div>
         </div>
     </div>
+<!-- Incluir jQuery desde CDN -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#service').on('change', function() {
+            var serviceId = $(this).val();
+            if (serviceId) {
+                $.ajax({
+                    url: "{{ route('get.professionals', '') }}/" + serviceId,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        $('#attendant').empty();
+                        if (data.length > 0) {
+                            $('#no-professionals').hide();
+                            $('#attendant').append('<option value="">Seleccionar...</option>');
+                            $.each(data, function(key, value) {
+                                $('#attendant').append('<option value="' + value.usr_id + '">' + value.usr_nombre_completo + '</option>');
+                            });
+                        } else {
+                            $('#attendant').append('<option value="">Seleccionar...</option>');
+                            $('#no-professionals').show();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al obtener los profesionales:', error);
+                        $('#attendant').empty();
+                        $('#attendant').append('<option value="">Seleccionar...</option>');
+                        $('#no-professionals').show();
+                    }
+                });
+            } else {
+                $('#attendant').empty();
+                $('#attendant').append('<option value="">Seleccionar...</option>');
+                $('#no-professionals').hide();
+            }
+        });
+    });
+</script>
 
 @endsection

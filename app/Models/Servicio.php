@@ -30,7 +30,7 @@ class Servicio extends Model
     public function usuarios()
     {
         return $this->belongsToMany(Usuario::class, 'usuarios_servicios', 'usr_srv_servicio_id', 'usr_srv_usuario_id')
-                    ->withPivot('usr_srv_notas')
-                    ->withTimestamps();
+            ->withPivot('usr_srv_notas');
     }
+    
 }
