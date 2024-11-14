@@ -2,6 +2,7 @@
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\CitaController;
 use App\Http\Controllers\HomeController;
 
 // Ruta de inicio (home) accesible para todos
@@ -41,3 +42,6 @@ Route::get('/test-db', function () {
         return 'No se pudo conectar a la base de datos: ' . $e->getMessage();
     }
 });
+
+Route::get('/get-available-times', [CitaController::class, 'getAvailableTimes'])->name('get.available.times');
+

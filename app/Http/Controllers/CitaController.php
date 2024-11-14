@@ -3,62 +3,74 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Cita;
+use Carbon\Carbon;
 
 class CitaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function getAvailableTimes(Request $request)
     {
-        //
-    }
+        try {
+            // Validar los parámetros
+            $request->validate([
+                'professional_id' => 'required|integer|exists:usuarios,usr_id',
+                'start' => 'required|date',
+                'end' => 'required|date',
+            ]);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+            $professionalId = $request->input('professional_id');
+            $start = $request->input('start');
+            $end = $request->input('end');
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+            // Parsear las fechas
+            $startDate = Carbon::createFromFormat('Y-m-d\TH:i:sP', $start);
+            $endDate = Carbon::createFromFormat('Y-m-d\TH:i:sP', $end);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+            // Obtener citas existentes
+            $existingAppointments = Cita::where('cta_profesional_id', $professionalId)
+                ->whereBetween('cta_fecha_hora', [$startDate, $endDate])
+                ->get();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+            // Generar intervalos disponibles
+            $availableTimes = [];
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+            $workStartTime = '11:00';
+            $workEndTime = '20:00';
+            $intervalMinutes = 30;
+
+            for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+                if (!$date->isWeekday()) {
+                    continue;
+                }
+
+                $currentTime = $date->copy()->setTimeFromTimeString($workStartTime);
+                $endTime = $date->copy()->setTimeFromTimeString($workEndTime);
+
+                while ($currentTime->lt($endTime)) {
+                    $isOccupied = $existingAppointments->contains(function ($appointment) use ($currentTime) {
+                        return Carbon::parse($appointment->cta_fecha_hora)->equalTo($currentTime);
+                    });
+
+                    if (!$isOccupied) {
+                        $availableTimes[] = [
+                            'title' => 'Disponible',
+                            'start' => $currentTime->toDateTimeString(),
+                            'end' => $currentTime->copy()->addMinutes($intervalMinutes)->toDateTimeString(),
+                            'backgroundColor' => 'green',
+                            'borderColor' => 'green',
+                        ];
+                    }
+
+                    $currentTime->addMinutes($intervalMinutes);
+                }
+            }
+
+            return response()->json($availableTimes);
+
+        } catch (\Exception $e) {
+            \Log::error('Error en getAvailableTimes: ' . $e->getMessage());
+            return response()->json(['error' => 'Error interno del servidor'], 500);
+        }
     }
 }
