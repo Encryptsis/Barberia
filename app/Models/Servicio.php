@@ -27,6 +27,8 @@ class Servicio extends Model
                     ->withTimestamps();
     }
 
+
+    //Esta función pasa a UsuarioController.php a la funcion de getProfessionals
     public function usuarios()
     {
         return $this->belongsToMany(Usuario::class, 'usuarios_servicios', 'usr_srv_servicio_id', 'usr_srv_usuario_id')

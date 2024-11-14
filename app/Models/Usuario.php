@@ -70,12 +70,6 @@ class Usuario extends Authenticatable
         return $this->hasMany(Pago::class, 'pago_usuario_id', 'usr_id');
     }
 
-    public function usuariosServicios()
-    {
-        return $this->belongsToMany(Servicio::class, 'usuarios_servicios', 'usr_srv_usuario_id', 'usr_srv_servicio_id')
-                    ->withPivot('usr_srv_notas')
-                    ->withTimestamps();
-    }
         // Relación con servicios
     public function servicios()
     {
@@ -83,9 +77,5 @@ class Usuario extends Authenticatable
                     ->withPivot('usr_srv_notas')
                     ->withTimestamps();
     }
-        // Relación con roles (si tienes un modelo Rol)
-    public function rol()
-    {
-        return $this->belongsTo(Role::class, 'usr_rol_id');
-    }
+
 }

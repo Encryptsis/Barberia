@@ -22,6 +22,8 @@ class CreateCitasTable extends Migration
             $table->unsignedInteger('cta_estado_id')->default(1);
             $table->timestamp('cta_created_at')->useCurrent();
             $table->timestamp('cta_updated_at')->useCurrent()->useCurrentOnUpdate();
+
+            //Claves Foraneas
             $table->foreign('cta_cliente_id')->references('usr_id')->on('usuarios');
             $table->foreign('cta_profesional_id')->references('usr_id')->on('usuarios');
             $table->foreign('cta_estado_id')->references('estado_id')->on('estados_citas');
