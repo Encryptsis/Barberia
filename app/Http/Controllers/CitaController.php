@@ -4,13 +4,144 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Cita;
+use App\Models\Servicio;
+use App\Models\Usuario;
+use App\Models\EstadoCita;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class CitaController extends Controller
 {
-// CitaController.php
 
-// CitaController.php
+    // Métodos existentes...
+
+    /**
+     * Mostrar una lista de las citas del usuario autenticado.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        // Obtener las citas del usuario autenticado, ordenadas por fecha descendente
+        $citas = Cita::where('cta_cliente_id', Auth::id())
+                     ->with(['servicios', 'profesional', 'estadoCita'])
+                     ->orderBy('cta_fecha', 'desc')
+                     ->get();
+
+        return view('appointments/citas', compact('citas'));
+    }
+
+    /**
+     * Mostrar el formulario para editar una cita específica.
+     *
+     * @param  \App\Models\Cita  $cita
+     * @return \Illuminate\Http\Response
+     */
+    public function edit(Cita $cita)
+    {
+        // Verificar que la cita pertenece al usuario autenticado
+        if ($cita->cta_cliente_id !== Auth::id()) {
+            return redirect()->route('my.appointments')->with('error', 'No tienes permiso para editar esta cita.');
+        }
+
+        // Obtener todos los servicios para el dropdown
+        $servicios = Servicio::all();
+
+        // Obtener los profesionales asociados al servicio actual de la cita
+        // Asumimos que una cita puede tener múltiples servicios; ajusta si es necesario
+        $servicioActual = $cita->servicios->first();
+        $profesionales = $servicioActual ? Usuario::where('srv_id', $servicioActual->srv_id)->get() : collect();
+
+        return view('citas', compact('cita', 'servicios', 'profesionales'));
+    }
+
+    /**
+     * Actualizar una cita específica en la base de datos.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Cita  $cita
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, Cita $cita)
+    {
+        // Verificar que la cita pertenece al usuario autenticado
+        if ($cita->cta_cliente_id !== Auth::id()) {
+            return redirect()->route('my.appointments')->with('error', 'No tienes permiso para actualizar esta cita.');
+        }
+
+        // Validar los datos del formulario
+        $request->validate([
+            'service'      => 'required|integer|exists:servicios,srv_id',
+            'attendant'    => 'required|integer|exists:usuarios,usr_id',
+            'fecha'        => 'required|date|after_or_equal:today',
+            'hora'         => 'required|date_format:H:i:s',
+        ]);
+
+        // Verificar si el intervalo está disponible (excepto para la cita actual)
+        $existingAppointment = Cita::where('cta_profesional_id', $request->input('attendant'))
+            ->where('cta_fecha', $request->input('fecha'))
+            ->where('cta_hora', $request->input('hora'))
+            ->where('cta_id', '!=', $cita->cta_id)
+            ->first();
+
+        if ($existingAppointment) {
+            return redirect()->back()->withErrors(['hora' => 'El intervalo seleccionado ya está reservado. Por favor, elige otro.']);
+        }
+
+        // Actualizar la cita con los nuevos datos
+        $cita->cta_profesional_id = $request->input('attendant');
+        $cita->cta_fecha = $request->input('fecha');
+        $cita->cta_hora = $request->input('hora');
+        // Actualizar otros campos si es necesario
+
+        $cita->save();
+
+        // Actualizar los servicios asociados
+        $cita->servicios()->sync([$request->input('service')]);
+
+        return redirect()->route('my.appointments')->with('success', 'Cita actualizada exitosamente.');
+    }
+
+    /**
+     * Eliminar una cita específica de la base de datos.
+     *
+     * @param  \App\Models\Cita  $cita
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Cita $cita)
+    {
+        // Verificar que la cita pertenece al usuario autenticado
+        if ($cita->cta_cliente_id !== Auth::id()) {
+            return redirect()->route('my.appointments')->with('error', 'No tienes permiso para eliminar esta cita.');
+        }
+
+        $cita->delete();
+
+        return redirect()->route('my.appointments')->with('success', 'Cita eliminada exitosamente.');
+    }
+
+    // Métodos existentes...
+
+    /**
+     * Obtener los profesionales disponibles según el servicio seleccionado.
+     *
+     * @param  int  $serviceId
+     * @return \Illuminate\Http\Response
+     */
+    public function getProfessionals($serviceId)
+    {
+        // Obtener los profesionales que ofrecen el servicio especificado
+        $profesionales = Usuario::where('srv_id', $serviceId)->get(['usr_id', 'usr_nombre_completo']);
+
+        return response()->json($profesionales);
+    }
+
+    /**
+     * Obtener los tiempos disponibles para un profesional en un rango de fechas.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
 
 public function getAvailableTimes(Request $request)
 {

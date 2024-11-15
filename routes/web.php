@@ -47,3 +47,21 @@ Route::get('/test-db', function () {
 
 Route::get('/get-available-times', [CitaController::class, 'getAvailableTimes'])->name('get.available.times');
 
+// Otras rutas existentes...
+
+Route::middleware(['auth'])->group(function () {
+    // Ruta para ver las citas del usuario
+    Route::get('/my-appointments', [CitaController::class, 'index'])->name('my.appointments');
+
+    // Ruta para mostrar el formulario de edición de una cita
+    Route::get('/my-appointments/{cita}/edit', [CitaController::class, 'edit'])->name('citas.edit');
+
+    // Ruta para actualizar una cita existente
+    Route::put('/my-appointments/{cita}', [CitaController::class, 'update'])->name('citas.update');
+
+    // Ruta para eliminar una cita
+    Route::delete('/my-appointments/{cita}', [CitaController::class, 'destroy'])->name('citas.destroy');
+
+    // Ruta para obtener profesionales según el servicio (usada en el formulario de edición)
+    Route::get('/get-professionals/{service}', [CitaController::class, 'getProfessionals'])->name('get.professionals');
+});

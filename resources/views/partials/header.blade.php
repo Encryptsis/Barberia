@@ -30,6 +30,9 @@
                 <li class="nav-item {{ Request::routeIs('agenda.usuario') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('agenda.usuario') }}">Agenda</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('my.appointments') }}">Mis Citas</a>
+                </li>
                 <!-- Enlace para cerrar sesión -->
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('logout') }}"

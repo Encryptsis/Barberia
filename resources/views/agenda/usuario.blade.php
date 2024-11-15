@@ -126,6 +126,8 @@
         .progressbar li:first-child:after {
             content: none;
         }
+
+        /* Estilos para pasos activos */
         .progressbar li.active {
             color: green;
         }
@@ -134,9 +136,22 @@
             background-color: green;
             color: white;
         }
-        .progressbar li.active + li:after {
-            background-color: green;
+
+        /* Estilos para pasos completados */
+        .progressbar li.completed {
+            color: green;
         }
+        .progressbar li.completed:before {
+            border-color: green;
+            background-color: green;
+            color: white;
+        }
+
+        /* Estilos para líneas después de pasos completados */
+        .progressbar li.completed + li:after {
+            background-color: green; /* Línea verde cuando el paso anterior está completado */
+        }
+
         /* Estilos para botones */
         .btn {
             margin: 5px;
@@ -187,10 +202,10 @@
         
         <!-- Barra de progreso -->
         <ul class="progressbar">
-            <li class="active">Servicio</li>
-            <li>Fecha y Hora</li>
-            <li>Resumen</li>
-            <li>Confirmación</li>
+            <li class="active">Servicio</li>          <!-- Índice 0 -->
+            <li>Fecha y Hora</li>                     <!-- Índice 1 -->
+            <li>Resumen</li>                          <!-- Índice 2 -->
+            <li>Confirmación</li>                     <!-- Índice 3 -->
         </ul>
 
         <div id="appointmentForm" class="mt-4">
@@ -306,7 +321,18 @@
     <!-- Incluir jQuery desde CDN -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        // Función para actualizar la barra de progreso
+        function updateProgressBar(currentStepIndex) {
+            $('.progressbar li').removeClass('active completed');
 
+            $('.progressbar li').each(function (index) {
+                if (index < currentStepIndex) {
+                    $(this).addClass('completed'); // Pasos completados
+                } else if (index === currentStepIndex) {
+                    $(this).addClass('active'); // Paso actual
+                }
+            });
+        }
 
         var selectedServiceId;
         var selectedAttendantId;
@@ -319,6 +345,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
+
             // Función para inicializar el calendario
             function initializeCalendar() {
                 var calendarEl = document.getElementById('calendar');
@@ -392,18 +419,15 @@
                         selectedDateTime = info.event.start;
                         console.log('Fecha y hora seleccionadas:', selectedDateTime);
 
-                    // Resaltar el evento seleccionado
-                    calendar.getEvents().forEach(function(event) {
-                        event.setProp('classNames', []);
-                    });
-                    info.event.setProp('classNames', ['available-slot', 'selected']);
-
+                        // Resaltar el evento seleccionado
+                        calendar.getEvents().forEach(function(event) {
+                            event.setProp('classNames', []);
+                        });
+                        info.event.setProp('classNames', ['available-slot', 'selected']);
 
                         // Añadir log para verificar que el evento es de sábado
                         var dayOfWeek = selectedDateTime.getDay(); // 0: Domingo, 6: Sábado
                         console.log('Día de la semana seleccionado:', dayOfWeek); // 6 para Sábado
-
-                        // No mostrar alerta, ya que el texto está oculto
                     },
                     height: 'auto', // Ajustar automáticamente la altura del calendario
                 });
@@ -457,7 +481,7 @@
                     $('#step-2').addClass('active');
 
                     // Actualizar la barra de progreso
-                    $('.progressbar li').eq(1).addClass('active');
+                    updateProgressBar(1); // Índice del paso 2
 
                     // Inicializar el calendario
                     initializeCalendar();
@@ -473,10 +497,10 @@
 
                 if (currentStep === 'step-2') {
                     $('#step-1').addClass('active');
-                    $('.progressbar li').eq(1).removeClass('active');
+                    updateProgressBar(0); // Índice del paso 1
                 } else if (currentStep === 'step-3') {
                     $('#step-2').addClass('active');
-                    $('.progressbar li').eq(2).removeClass('active');
+                    updateProgressBar(1); // Índice del paso 2
                 }
             });
 
@@ -488,7 +512,7 @@
                     $('#step-3').addClass('active');
 
                     // Actualizar la barra de progreso
-                    $('.progressbar li').eq(2).addClass('active');
+                    updateProgressBar(2); // Índice del paso 3
 
                     // Mostrar el resumen
                     $('#summary').html(`
@@ -502,7 +526,7 @@
                 }
             });
 
-            // Evento para confirmar la reserva
+            // Evento para confirmar la reserva en Paso 3
             $('#confirmBooking').on('click', function() {
                 if (!selectedDateTime) {
                     alert('Por favor, selecciona una fecha y hora para tu cita.');
@@ -532,8 +556,7 @@
                             $('#step-4').addClass('active');
 
                             // Actualizar la barra de progreso
-                            $('.progressbar li').eq(3).addClass('active');
-                            $('.progressbar li').eq(2).removeClass('active');
+                            updateProgressBar(3); // Índice del paso 4
 
                             // Mostrar mensaje de confirmación
                             $('#confirmationMessage').html(`
@@ -566,8 +589,6 @@
                             alert('Ocurrió un error al guardar la cita. Por favor, inténtalo de nuevo.');
                         }
                     }
-
-
                 });
             });
 
@@ -584,7 +605,6 @@
                 $('#addServiceModal').modal('hide');
                 alert('Servicio adicional agregado exitosamente.');
             });
-
         });
     </script>
 

@@ -9,6 +9,9 @@ class EstadoCita extends Model
 {
     use HasFactory;
 
+    // Especificar el nombre correcto de la tabla
+    protected $table = 'estados_citas';
+    
     protected $primaryKey = 'estado_id';
     public $timestamps = false;
 
