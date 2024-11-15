@@ -18,6 +18,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Nueva ruta para obtener profesionales por servicio
     Route::get('/get-professionals/{service_id}', [UsuarioController::class, 'getProfessionals'])->name('get.professionals');
+    // Nueva ruta para guardar la cita
+    Route::post('/save-appointment', [CitaController::class, 'saveAppointment'])->name('save.appointment');
 });
 
 // Rutas para autenticación y registro (solo para invitados)

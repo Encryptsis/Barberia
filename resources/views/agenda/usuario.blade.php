@@ -43,13 +43,15 @@
             font-size: 0.8rem; /* Reducir tamaño de fuente */
         }
         /* Estilos para las celdas de eventos disponibles */
-        .fc-event {
+        .fc-event.available-slot {
             background-color: #28a745 !important; /* Verde más vibrante */
             border: none;
             border-radius: 3px; /* Bordes más redondeados */
             cursor: pointer;
             font-size: 0.8rem; /* Reducir tamaño de fuente */
             padding: 2px 4px; /* Reducir padding */
+            text-align: center;
+            color: transparent !important; /* Ocultar texto */
         }
         /* Estilos para el evento seleccionado */
         .fc-event.selected {
@@ -144,6 +146,7 @@
             background-color: rgba(255, 255, 255, 0.1);
             padding: 10px;
             border-radius: 5px;
+            color: white;
         }
         /* Estilos para mensajes de confirmación */
         .alert-success {
@@ -170,15 +173,11 @@
             padding: 0; /* Eliminar padding en las secciones del calendario */
         }
 
-        /* Opcional: cambiar el color del texto de la columna actual para mayor visibilidad */
-        .fc-day-today .fc-day-number {
-            color: #28a745 !important; /* Verde para el número del día */
-            font-weight: bold;
-        }
-
-        /* Opcional: resaltar el título del día actual */
-        .fc-day-today .fc-daygrid-day-top {
-            background-color: transparent !important; /* Evitar superposición */
+        /* Forzar que todos los eventos disponibles sean verdes, incluidos los sábados */
+        .fc-event.available-slot {
+            background-color: #28a745 !important; /* Verde más vibrante */
+            border-color: #28a745 !important;
+            color: transparent !important; /* Ocultar texto */
         }
     </style> 
 
@@ -237,8 +236,11 @@
                 <div id="summary">
                     <!-- Se llenará dinámicamente con los detalles de la reserva -->
                 </div>
-                <button type="button" class="btn btn-secondary prev-step mt-3">Atrás</button>
-                <button type="button" class="btn btn-success" id="confirmBooking">Confirmar Reserva</button>
+                <div class="d-flex justify-content-between mt-3">
+                    <button type="button" class="btn btn-secondary prev-step">Atrás</button>
+                    <button type="button" class="btn btn-success" id="confirmBooking">Confirmar Reserva</button>
+                </div>
+                
                 <button type="button" class="btn btn-info" id="addService" style="display:none;">Agregar más servicios</button>
             </div>
 
@@ -304,12 +306,19 @@
     <!-- Incluir jQuery desde CDN -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+
+
         var selectedServiceId;
         var selectedAttendantId;
         var selectedDateTime;
 
         $(document).ready(function() {
-
+            // Configurar AJAX para incluir el token CSRF en los encabezados
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
             // Función para inicializar el calendario
             function initializeCalendar() {
                 var calendarEl = document.getElementById('calendar');
@@ -318,52 +327,46 @@
                 today.setHours(0, 0, 0, 0); // Asegurar que la hora es 00:00
 
                 var calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'customTimeGrid', // Cambiar a la vista personalizada
+                    initialView: 'timeGridSevenDay', // Usar la vista personalizada
+                    views: {
+                        timeGridSevenDay: {
+                            type: 'timeGrid',
+                            duration: { days: 7 }, // Duración de 7 días
+                            buttonText: '7 días'
+                        }
+                    },
                     locale: 'es',
                     selectable: true,
-                    selectHelper: true,
+                    selectMirror: true,
                     allDaySlot: false, // Ocultar el espacio de "todo el día"
                     initialDate: today, // Fecha inicial: hoy
                     businessHours: {
-                        daysOfWeek: [1, 2, 3, 4, 5, 6], // Lunes a Sábado
+                        daysOfWeek: [0, 1, 2, 3, 4, 5, 6], // Domingo a Sábado
                         startTime: '11:00',
-                        endTime: '20:00', // 7:00 pm
+                        endTime: '19:00', // 7:00 pm
                     },
                     slotMinTime: '11:00:00',
-                    slotMaxTime: '20:00:00', // 7:00 pm
+                    slotMaxTime: '19:00:00', // 7:00 pm
                     slotDuration: '01:00:00', // Intervalos de 1 hora
                     slotLabelInterval: '01:00', // Etiquetas cada 1 hora
                     slotLabelFormat: {
                         hour: 'numeric',
                         minute: '2-digit',
                         hour12: false // Formato de 24 horas
-                    }, // Formato de etiqueta de hora
+                    },
                     aspectRatio: 1.5, // Ajusta la proporción ancho/alto para hacerlo más compacto
                     contentHeight: 'auto', // Ajusta automáticamente la altura según el contenido
                     headerToolbar: {
-                        left: 'prev,next today', // Mantener botones de navegación y 'today'
+                        left: 'prev,next today',
                         center: 'title',
                         right: '' // Eliminar otros botones si los hay
                     },
                     validRange: {
                         start: today, // No permitir navegar a fechas anteriores a hoy
                     },
-                    views: {
-                        customTimeGrid: {
-                            type: 'timeGrid',
-                            duration: { days: 7 },
-                            visibleRange: function(currentDate) {
-                                var start = new Date();
-                                start.setHours(0,0,0,0); // Asegurar que la hora es 00:00
-                                var end = new Date(start);
-                                end.setDate(start.getDate() + 7); // +7 días
-                                return {
-                                    start: start,
-                                    end: end
-                                };
-                            },
-                            buttonText: '7 días'
-                        }
+                    eventContent: function(arg) {
+                        // Personalizar el contenido del evento para que no muestre texto
+                        return { html: '<div></div>' };
                     },
                     events: function(fetchInfo, successCallback, failureCallback) {
                         $.ajax({
@@ -389,13 +392,18 @@
                         selectedDateTime = info.event.start;
                         console.log('Fecha y hora seleccionadas:', selectedDateTime);
 
-                        // Resaltar el evento seleccionado
-                        calendar.getEvents().forEach(function(event) {
-                            event.removeProp('classNames');
-                        });
-                        info.event.setProp('classNames', ['selected']);
+                    // Resaltar el evento seleccionado
+                    calendar.getEvents().forEach(function(event) {
+                        event.setProp('classNames', []);
+                    });
+                    info.event.setProp('classNames', ['available-slot', 'selected']);
 
-                        alert('Has seleccionado: ' + info.event.start.toLocaleString());
+
+                        // Añadir log para verificar que el evento es de sábado
+                        var dayOfWeek = selectedDateTime.getDay(); // 0: Domingo, 6: Sábado
+                        console.log('Día de la semana seleccionado:', dayOfWeek); // 6 para Sábado
+
+                        // No mostrar alerta, ya que el texto está oculto
                     },
                     height: 'auto', // Ajustar automáticamente la altura del calendario
                 });
@@ -486,41 +494,81 @@
                     $('#summary').html(`
                         <p><strong>Servicio:</strong> ${$('#service option:selected').text()}</p>
                         <p><strong>Profesional:</strong> ${$('#attendant option:selected').text()}</p>
-                        <p><strong>Fecha y Hora:</strong> ${selectedDateTime.toLocaleString()}</p>
+                        <p><strong>Fecha:</strong> ${selectedDateTime.toLocaleDateString()}</p>
+                        <p><strong>Hora:</strong> ${selectedDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                     `);
                 } else {
                     alert('Por favor, selecciona una fecha y hora para tu cita.');
                 }
             });
 
-            // Evento para el botón "Atrás" en el Paso 3
-            $('#step-3 .prev-step').on('click', function() {
-                $('.step').removeClass('active');
-                $('#step-2').addClass('active');
-
-                // Actualizar la barra de progreso
-                $('.progressbar li').eq(2).removeClass('active');
-                $('.progressbar li').eq(1).addClass('active');
-            });
-
             // Evento para confirmar la reserva
             $('#confirmBooking').on('click', function() {
-                // Aquí puedes agregar lógica para guardar la reserva en la base de datos
-                // Por ahora, solo pasamos al paso 4
+                if (!selectedDateTime) {
+                    alert('Por favor, selecciona una fecha y hora para tu cita.');
+                    return;
+                }
 
-                $('.step').removeClass('active');
-                $('#step-4').addClass('active');
+                // Preparar los datos a enviar
+                var data = {
+                    service_id: selectedServiceId,
+                    professional_id: selectedAttendantId,
+                    fecha: selectedDateTime.toISOString().split('T')[0], // Formato YYYY-MM-DD
+                    hora: selectedDateTime.toTimeString().split(' ')[0], // Formato HH:MM:SS
+                };
 
-                // Actualizar la barra de progreso
-                $('.progressbar li').eq(3).addClass('active');
-                $('.progressbar li').eq(2).removeClass('active');
+                console.log('Datos a enviar:', data); // Añadir para depuración
 
-                // Mostrar mensaje de confirmación
-                $('#confirmationMessage').html(`
-                    <div class="alert alert-success">
-                        Tu reserva ha sido confirmada exitosamente.
-                    </div>
-                `);
+                // Enviar solicitud AJAX para guardar la cita
+                $.ajax({
+                    url: "{{ route('save.appointment') }}",
+                    type: 'POST',
+                    dataType: 'json',
+                    data: data,
+                    success: function(response) {
+                        if (response.success) {
+                            // Pasar al paso 4
+                            $('.step').removeClass('active');
+                            $('#step-4').addClass('active');
+
+                            // Actualizar la barra de progreso
+                            $('.progressbar li').eq(3).addClass('active');
+                            $('.progressbar li').eq(2).removeClass('active');
+
+                            // Mostrar mensaje de confirmación
+                            $('#confirmationMessage').html(`
+                                <div class="alert alert-success">
+                                    ${response.success}
+                                </div>
+                            `);
+                        } else if (response.error) {
+                            alert(response.error);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Estado de la respuesta:', xhr.status);
+                        console.error('Respuesta del servidor:', xhr.responseText);
+                        if (xhr.status === 422) {
+                            // Errores de validación
+                            var errors = xhr.responseJSON.error;
+                            var errorMessages = '';
+                            $.each(errors, function(key, value) {
+                                errorMessages += value + '\n';
+                            });
+                            alert(errorMessages);
+                        } else if (xhr.status === 409) {
+                            // Conflicto: intervalo ya reservado
+                            alert(xhr.responseJSON.error);
+                        } else if (xhr.status === 401) {
+                            alert('No estás autenticado. Por favor, inicia sesión.');
+                            window.location.href = "{{ route('login') }}";
+                        } else {
+                            alert('Ocurrió un error al guardar la cita. Por favor, inténtalo de nuevo.');
+                        }
+                    }
+
+
+                });
             });
 
             // Evento para agregar más servicios (si es necesario)
@@ -539,7 +587,5 @@
 
         });
     </script>
-
-
 
 @endsection
