@@ -43,17 +43,19 @@ class CitaController extends Controller
         if ($cita->cta_cliente_id !== Auth::id()) {
             return redirect()->route('my.appointments')->with('error', 'No tienes permiso para editar esta cita.');
         }
-
+    
         // Obtener todos los servicios para el dropdown
         $servicios = Servicio::all();
-
-        // Obtener los profesionales asociados al servicio actual de la cita
-        // Asumimos que una cita puede tener múltiples servicios; ajusta si es necesario
+    
+        // Obtener el servicio actual de la cita
         $servicioActual = $cita->servicios->first();
-        $profesionales = $servicioActual ? Usuario::where('srv_id', $servicioActual->srv_id)->get() : collect();
-
-        return view('citas', compact('cita', 'servicios', 'profesionales'));
+    
+        // Obtener los profesionales asociados al servicio actual de la cita usando la relación
+        $profesionales = $servicioActual ? $servicioActual->usuarios()->get() : collect();
+    
+        return view('appointments/edit', compact('cita', 'servicios', 'profesionales'));
     }
+    
 
     /**
      * Actualizar una cita específica en la base de datos.
@@ -68,39 +70,45 @@ class CitaController extends Controller
         if ($cita->cta_cliente_id !== Auth::id()) {
             return redirect()->route('my.appointments')->with('error', 'No tienes permiso para actualizar esta cita.');
         }
-
+    
         // Validar los datos del formulario
         $request->validate([
-            'service'      => 'required|integer|exists:servicios,srv_id',
-            'attendant'    => 'required|integer|exists:usuarios,usr_id',
-            'fecha'        => 'required|date|after_or_equal:today',
-            'hora'         => 'required|date_format:H:i:s',
+            'service'   => 'required|integer|exists:servicios,srv_id',
+            'attendant' => 'required|integer|exists:usuarios,usr_id',
+            'fecha'     => 'required|date|after_or_equal:today',
+            'hora'      => 'required|date_format:H:i',
+        ], [
+            'hora.date_format' => 'El campo hora debe tener el formato HH:MM.',
         ]);
-
+    
+        // Procesar la hora para asegurarse de que los minutos son '00'
+        $horaConSegundos = $request->input('hora') . ':00';
+    
         // Verificar si el intervalo está disponible (excepto para la cita actual)
         $existingAppointment = Cita::where('cta_profesional_id', $request->input('attendant'))
             ->where('cta_fecha', $request->input('fecha'))
-            ->where('cta_hora', $request->input('hora'))
+            ->where('cta_hora', $horaConSegundos)
             ->where('cta_id', '!=', $cita->cta_id)
             ->first();
-
+    
         if ($existingAppointment) {
             return redirect()->back()->withErrors(['hora' => 'El intervalo seleccionado ya está reservado. Por favor, elige otro.']);
         }
-
+    
         // Actualizar la cita con los nuevos datos
         $cita->cta_profesional_id = $request->input('attendant');
         $cita->cta_fecha = $request->input('fecha');
-        $cita->cta_hora = $request->input('hora');
+        $cita->cta_hora = $horaConSegundos;
         // Actualizar otros campos si es necesario
-
+    
         $cita->save();
-
+    
         // Actualizar los servicios asociados
         $cita->servicios()->sync([$request->input('service')]);
-
+    
         return redirect()->route('my.appointments')->with('success', 'Cita actualizada exitosamente.');
     }
+    
 
     /**
      * Eliminar una cita específica de la base de datos.

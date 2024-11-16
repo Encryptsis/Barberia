@@ -1,4 +1,4 @@
-<!-- resources/views/citas.blade.php -->
+<!-- resources/views/appointments/citas.blade.php -->
 
 @extends('layouts.app')
 
@@ -7,6 +7,7 @@
 @section('content')
     <!-- Contenedor Principal -->
     <div class="container my-5">
+        <div class="mb-7"></div> <!-- Espaciador vacío -->
         <h2 class="mb-4 text-center">Mis Citas</h2>
 
         <!-- Mostrar mensajes de éxito o error -->
@@ -21,70 +22,6 @@
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-            </div>
-        @endif
-
-        <!-- Mostrar errores de validación (si hay una cita siendo editada) -->
-        @if(isset($cita) && $errors->any())
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <ul class="mb-0">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-            </div>
-        @endif
-
-        <!-- Formulario de Edición de Cita -->
-        @if(isset($cita))
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <strong>Editar Cita</strong>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('citas.update', $cita->cta_id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-
-                        <div class="mb-3">
-                            <label for="service" class="form-label">Servicio</label>
-                            <select class="form-select" id="service" name="service" required>
-                                <option value="">Seleccionar...</option>
-                                @foreach($servicios as $servicio)
-                                    <option value="{{ $servicio->srv_id }}" {{ $cita->servicios->pluck('srv_id')->contains($servicio->srv_id) ? 'selected' : '' }}>
-                                        {{ $servicio->srv_nombre }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="attendant" class="form-label">Profesional</label>
-                            <select class="form-select" id="attendant" name="attendant" required>
-                                <option value="">Seleccionar...</option>
-                                @foreach($profesionales as $profesional)
-                                    <option value="{{ $profesional->usr_id }}" {{ $cita->cta_profesional_id == $profesional->usr_id ? 'selected' : '' }}>
-                                        {{ $profesional->usr_nombre_completo }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="fecha" class="form-label">Fecha</label>
-                            <input type="date" class="form-control" id="fecha" name="fecha" value="{{ $cita->cta_fecha }}" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="hora" class="form-label">Hora</label>
-                            <input type="time" class="form-control" id="hora" name="hora" value="{{ \Carbon\Carbon::parse($cita->cta_hora)->format('H:i') }}" required>
-                        </div>
-
-                        <button type="submit" class="btn btn-success">Actualizar Cita</button>
-                        <a href="{{ route('my.appointments') }}" class="btn btn-secondary">Cancelar</a>
-                    </form>
-                </div>
             </div>
         @endif
 
@@ -158,55 +95,5 @@
             </div>
         @endif
 
-        <!-- Botón para Volver al Inicio -->
-        <div class="text-center">
-            <a href="{{ route('home') }}" class="btn btn-primary mt-3">Volver al Inicio</a>
-        </div>
     </div>
-
-    <!-- Incluir jQuery y Bootstrap JS desde CDN -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Scripts Personalizados -->
-    <script>
-        $(document).ready(function() {
-            // Evento para actualizar los profesionales según el servicio seleccionado en el formulario de edición
-            $('#service').on('change', function() {
-                var serviceId = $(this).val();
-                if (serviceId) {
-                    $.ajax({
-                        url: "{{ route('get.professionals', '') }}/" + serviceId,
-                        type: 'GET',
-                        dataType: 'json',
-                        success: function(data) {
-                            $('#attendant').empty();
-                            if (data.length > 0) {
-                                $('#attendant').append('<option value="">Seleccionar...</option>');
-                                $.each(data, function(key, value) {
-                                    $('#attendant').append('<option value="' + value.usr_id + '">' + value.usr_nombre_completo + '</option>');
-                                });
-                            } else {
-                                $('#attendant').append('<option value="">No hay profesionales disponibles</option>');
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Error al obtener los profesionales:', error);
-                            $('#attendant').empty();
-                            $('#attendant').append('<option value="">Error al cargar profesionales</option>');
-                        }
-                    });
-                } else {
-                    $('#attendant').empty();
-                    $('#attendant').append('<option value="">Seleccionar...</option>');
-                }
-            });
-
-            // Pre-cargar los profesionales si el servicio ya está seleccionado (en caso de edición)
-            var initialServiceId = $('#service').val();
-            if (initialServiceId) {
-                $('#service').trigger('change');
-            }
-        });
-    </script>
 @endsection

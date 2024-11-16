@@ -14,18 +14,62 @@
 
     <!-- Otros estilos específicos de cada vista -->
     @stack('styles')
-</head>
-<body class="page-background">
-    <!-- Cabecera -->
-    @include('partials.header')
-    
-    <!-- Contenido Principal -->
-    <div>
-        @yield('content')
-    </div>
 
-    <!-- Pie de Página -->
-    @include('partials.footer')
+    <style>
+        /* Asegura que html y body ocupen el 100% de la altura */
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        /* Wrapper Flexbox */
+        .flex-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Contenido Principal */
+        .content {
+            flex: 1;
+        }
+
+        /* Footer Styling */
+        footer {
+            background-color: #000000; /* Color de fondo del footer */
+            color: white; /* Color del texto */
+        }
+
+        .footer-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 30px;
+        }
+
+        .footer-image {
+            max-width: 100px;
+            height: auto;
+        }
+
+        .text-content span {
+            display: block;
+        }
+    </style>
+</head>
+<body class="page-background" >
+    <div class="flex-wrapper">
+        <!-- Cabecera -->
+        @include('partials.header')
+        
+        <!-- Contenido Principal -->
+        <main class="content">
+            @yield('content')
+        </main>
+
+        <!-- Pie de Página -->
+        @include('partials.footer')
+    </div>
 
     <!-- Cargar jQuery desde CDN (si es necesario) -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>

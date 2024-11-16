@@ -73,9 +73,12 @@ class Usuario extends Authenticatable
         // Relación con servicios
     public function servicios()
     {
-        return $this->belongsToMany(Servicio::class, 'usuarios_servicios', 'usr_srv_usuario_id', 'usr_srv_servicio_id')
-                    ->withPivot('usr_srv_notas')
-                    ->withTimestamps();
+        return $this->belongsToMany(
+            Servicio::class,
+            'usuarios_servicios',
+            'usr_srv_usuario_id',    // Clave foránea en la tabla pivote para Usuario
+            'usr_srv_servicio_id'    // Clave foránea en la tabla pivote para Servicio
+        );
     }
 
 }
