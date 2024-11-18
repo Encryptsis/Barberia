@@ -21,7 +21,7 @@ class UsuariosSeeder extends Seeder
                 'usr_telefono' => '5551234567',
                 'usr_foto_perfil' => null,
                 'usr_activo' => true,
-                'usr_rol_id' => 2,
+                'usr_rol_id' => 1,
                 'usr_recuperacion_token' => null,
                 'usr_recuperacion_expira' => null,
                 'usr_ultimo_acceso' => '2024-11-09 10:00:00',

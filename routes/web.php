@@ -4,10 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\CitaController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\AgendaController;
 
 // Ruta de inicio (home) accesible para todos
 Route::get('/', [HomeController::class, 'index'])->name('home');
-
 
 // Rutas protegidas por middleware 'auth'
 Route::middleware(['auth'])->group(function () {
@@ -64,4 +64,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Ruta para obtener profesionales según el servicio (usada en el formulario de edición)
     Route::get('/get-professionals/{service}', [CitaController::class, 'getProfessionals'])->name('get.professionals');
+});
+
+// Rutas protegidas por middleware 'auth' y 'is_admin'
+Route::middleware(['auth', 'is_admin'])->group(function () {
+    Route::get('/agendas', [AgendaController::class, 'index'])->name('agendas.index');
 });

@@ -33,6 +33,14 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('my.appointments') }}">Mis Citas</a>
                 </li>
+
+                <!-- Enlace Agendas solo para Administradores -->
+                @if(Auth::user()->isAdmin())
+                    <li class="nav-item {{ Request::routeIs('agendas.index') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('agendas.index') }}">Agendas</a>
+                    </li>
+                @endif
+
                 <!-- Enlace para cerrar sesión -->
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('logout') }}"

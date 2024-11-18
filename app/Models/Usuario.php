@@ -40,6 +40,13 @@ class Usuario extends Authenticatable
     // Especificar el campo de contraseña personalizado
     protected $authPasswordName = 'usr_password';
 
+    // app/Models/Usuario.php
+
+    public function isAdmin()
+    {
+        return $this->role && strcasecmp($this->role->rol_nombre, 'Administrador') === 0;
+    }
+
     public function getAuthPassword()
     {
         return $this->usr_password;
