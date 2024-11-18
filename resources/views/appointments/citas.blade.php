@@ -60,33 +60,11 @@
                                 <td>
                                     <a href="{{ route('citas.edit', $citaItem->cta_id) }}" class="btn btn-sm btn-warning">Editar</a>
                                     
-                                    <!-- Botón para abrir el modal de eliminación -->
-                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $citaItem->cta_id }}">
-                                        Eliminar
-                                    </button>
-
-                                    <!-- Modal de Confirmación de Eliminación -->
-                                    <div class="modal fade" id="deleteModal{{ $citaItem->cta_id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $citaItem->cta_id }}" aria-hidden="true">
-                                      <div class="modal-dialog">
-                                        <div class="modal-content">
-                                          <form action="{{ route('citas.destroy', $citaItem->cta_id) }}" method="POST">
-                                              @csrf
-                                              @method('DELETE')
-                                              <div class="modal-header">
-                                                  <h5 class="modal-title" id="deleteModalLabel{{ $citaItem->cta_id }}">Confirmar Eliminación</h5>
-                                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                                              </div>
-                                              <div class="modal-body">
-                                                  ¿Estás seguro de que deseas eliminar esta cita?
-                                              </div>
-                                              <div class="modal-footer">
-                                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                  <button type="submit" class="btn btn-danger">Eliminar</button>
-                                              </div>
-                                          </form>
-                                        </div>
-                                      </div>
-                                    </div>
+                                    <form action="{{ route('citas.destroy', $citaItem->cta_id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta cita?');" style="display:inline-block;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                                    </form>
                                 </td>
                             </tr>
                         @endforeach

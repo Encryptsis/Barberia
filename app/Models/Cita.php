@@ -10,6 +10,8 @@ class Cita extends Model
     use HasFactory;
 
     protected $primaryKey = 'cta_id';
+    protected $table = 'citas';
+
     public $timestamps = true;
     // Definir nombres personalizados para created_at y updated_at
     const CREATED_AT = 'cta_created_at';

@@ -118,15 +118,18 @@ class CitaController extends Controller
      */
     public function destroy(Cita $cita)
     {
-        // Verificar que la cita pertenece al usuario autenticado
+        \Log::info('Datos de la cita:', ['cta_id' => $cita->cta_id, 'cta_cliente_id' => $cita->cta_cliente_id]);
+        \Log::info('ID de usuario autenticado:', ['auth_id' => Auth::id()]);
+    
         if ($cita->cta_cliente_id !== Auth::id()) {
             return redirect()->route('my.appointments')->with('error', 'No tienes permiso para eliminar esta cita.');
         }
-
+    
         $cita->delete();
-
+    
         return redirect()->route('my.appointments')->with('success', 'Cita eliminada exitosamente.');
     }
+    
 
     // Métodos existentes...
 
