@@ -21,21 +21,42 @@
             <li class="nav-item {{ Request::routeIs('home') ? 'active' : '' }}">
                 <a class="nav-link" href="{{ route('home') }}">Home</a>
             </li>
-            
-            @if (Auth::check())
+
+            @guest
+                <!-- Enlaces visibles solo para invitados -->
+                <li class="nav-item {{ Request::routeIs('login') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('login') }}">Login</a>
+                </li>
+                <li class="nav-item me-3 {{ Request::routeIs('register') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('register') }}">Sign Up</a>
+                </li>
+            @else
                 <!-- Enlaces visibles solo para usuarios autenticados -->
                 <li class="nav-item {{ Request::routeIs('perfil.usuario') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('perfil.usuario') }}">Profile</a>
                 </li>
-                <li class="nav-item {{ Request::routeIs('agenda.usuario') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('agenda.usuario') }}">Agenda</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('my.appointments') }}">Mis Citas</a>
-                </li>
 
-                <!-- Enlace Agendas solo para Administradores -->
-                @if(Auth::user()->isAdmin())
+                @php
+                    // Obtener el rol del usuario autenticado
+                    $role = Auth::user()->role->rol_nombre;
+                @endphp
+
+                @if(in_array($role, ['Administrador', 'Barbero', 'Facialista']))
+                    <li class="nav-item {{ Request::routeIs('mi.agenda') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('mi.agenda') }}">Mi Agenda</a>
+                    </li>
+                @endif
+
+                @if($role === 'Cliente')
+                    <li class="nav-item {{ Request::routeIs('agenda.usuario') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('agenda.usuario') }}">Agenda</a>
+                    </li>
+                    <li class="nav-item {{ Request::routeIs('my.appointments') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('my.appointments') }}">Mis Citas</a>
+                    </li>
+                @endif
+
+                @if($role === 'Administrador')
                     <li class="nav-item {{ Request::routeIs('agendas.index') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('agendas.index') }}">Agendas</a>
                     </li>
@@ -51,15 +72,7 @@
                         @csrf
                     </form>
                 </li>
-            @else
-                <!-- Enlaces visibles solo para invitados -->
-                <li class="nav-item {{ Request::routeIs('login') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('login') }}">Login</a>
-                </li>
-                <li class="nav-item me-3 {{ Request::routeIs('register') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('register') }}">Sign Up</a>
-                </li>
-            @endif
+            @endguest
         </ul>
     </div>
 </nav>

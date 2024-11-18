@@ -285,6 +285,109 @@ public function saveAppointment(Request $request)
     }
 }
 
+// app/Http/Controllers/CitaController.php
+
+public function miAgenda()
+{
+    // Obtener el usuario autenticado
+    $user = Auth::user();
+
+    // Verificar si el usuario tiene un rol que puede tener una agenda
+    if (!in_array($user->role->rol_nombre, ['Administrador', 'Barbero', 'Facialista'])) {
+        return redirect()->route('home')->with('error', 'No tienes permiso para acceder a esta sección.');
+    }
+
+    // Obtener las citas donde el usuario es el profesional
+    $citas = Cita::where('cta_profesional_id', $user->usr_id)
+                 ->with(['cliente', 'servicios', 'estadoCita'])
+                 ->orderBy('cta_fecha', 'desc')
+                 ->get();
+
+    return view('myagenda.mi_agenda', compact('citas'));
+}
+
+
+public function editMiAgenda(Cita $cita)
+{
+    $user = Auth::user();
+
+    // Verificar si el usuario es el profesional asignado a la cita
+    if ($cita->cta_profesional_id !== $user->usr_id) {
+        return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para editar esta cita.');
+    }
+
+    // Obtener todos los servicios para el dropdown
+    $servicios = Servicio::all();
+
+    // Obtener los profesionales asociados al servicio actual de la cita
+    $servicioActual = $cita->servicios->first();
+    $profesionales = $servicioActual ? $servicioActual->usuarios()->get() : collect();
+
+    return view('myagenda.edit_mi_agenda', compact('cita', 'servicios', 'profesionales'));
+}
+
+
+public function updateMiAgenda(Request $request, Cita $cita)
+{
+    $user = Auth::user();
+
+    // Verificar si el usuario es el profesional asignado a la cita
+    if ($cita->cta_profesional_id !== $user->usr_id) {
+        return redirect()->route('myagenda.agenda')->with('error', 'No tienes permiso para actualizar esta cita.');
+    }
+
+    // Validar los datos del formulario
+    $request->validate([
+        'service'   => 'required|integer|exists:servicios,srv_id',
+        'attendant' => 'required|integer|exists:usuarios,usr_id',
+        'fecha'     => 'required|date|after_or_equal:today',
+        'hora'      => 'required|date_format:H:i',
+    ], [
+        'hora.date_format' => 'El campo hora debe tener el formato HH:MM.',
+    ]);
+
+    // Procesar la hora para asegurarse de que los minutos son '00'
+    $horaConSegundos = $request->input('hora') . ':00';
+
+    // Verificar si el intervalo está disponible (excepto para la cita actual)
+    $existingAppointment = Cita::where('cta_profesional_id', $request->input('attendant'))
+        ->where('cta_fecha', $request->input('fecha'))
+        ->where('cta_hora', $horaConSegundos)
+        ->where('cta_id', '!=', $cita->cta_id)
+        ->first();
+
+    if ($existingAppointment) {
+        return redirect()->back()->withErrors(['hora' => 'El intervalo seleccionado ya está reservado. Por favor, elige otro.']);
+    }
+
+    // Actualizar la cita con los nuevos datos
+    $cita->cta_profesional_id = $request->input('attendant');
+    $cita->cta_fecha = $request->input('fecha');
+    $cita->cta_hora = $horaConSegundos;
+    // Actualizar otros campos si es necesario
+
+    $cita->save();
+
+    // Actualizar los servicios asociados
+    $cita->servicios()->sync([$request->input('service')]);
+
+    return redirect()->route('mi.agenda')->with('success', 'Cita eliminada exitosamente.');
+}
+
+
+public function destroyMiAgenda(Cita $cita)
+{
+    $user = Auth::user();
+
+    // Verificar si el usuario es el profesional asignado a la cita
+    if ($cita->cta_profesional_id !== $user->usr_id) {
+        return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para eliminar esta cita.');
+    }
+
+    $cita->delete();
+
+    return redirect()->route('mi.agenda')->with('success', 'Cita eliminada exitosamente.');
+}
 
 
     
