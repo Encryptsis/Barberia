@@ -19,6 +19,7 @@ CREATE TABLE usuarios (
     usr_foto_perfil VARCHAR(255),
     usr_activo BOOLEAN DEFAULT TRUE,
     usr_rol_id INT,
+    usr_points INT UNSIGNED NOT NULL DEFAULT 0,
     usr_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     usr_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     usr_recuperacion_token VARCHAR(255),
@@ -55,6 +56,12 @@ CREATE TABLE citas (
     cta_fecha DATE NOT NULL,
     cta_hora TIME NOT NULL,
     cta_estado_id INT NOT NULL DEFAULT 1,
+    cta_arrival_confirmed BOOLEAN NOT NULL DEFAULT FALSE, -- Nueva columna
+    cta_arrival_time DATETIME NULL, -- Nueva columna
+    cta_punctuality_status VARCHAR(20) NULL, -- Nueva columna: 'on_time', 'late'
+    cta_penalty_applied BOOLEAN NOT NULL DEFAULT FALSE, -- Nueva columna
+    cta_penalty_amount DECIMAL(10,2) NULL, -- Nueva columna
+    cta_is_free BOOLEAN NOT NULL DEFAULT FALSE,
     cta_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     cta_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (cta_cliente_id) REFERENCES usuarios(usr_id),
@@ -62,6 +69,19 @@ CREATE TABLE citas (
     FOREIGN KEY (cta_estado_id) REFERENCES estados_citas(estado_id),
     INDEX idx_cta_estado_id (cta_estado_id)
 );
+
+CREATE TABLE pun_penalties (
+    pun_id INT AUTO_INCREMENT PRIMARY KEY,
+    pun_cta_id INT NOT NULL, -- Referencia a la cita
+    pun_usr_id INT NOT NULL, -- Referencia al usuario (cliente)
+    pun_amount DECIMAL(10,2) NOT NULL, -- Monto de la multa
+    pun_applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pun_cta_id) REFERENCES citas(cta_id) ON DELETE CASCADE,
+    FOREIGN KEY (pun_usr_id) REFERENCES usuarios(usr_id) ON DELETE CASCADE,
+    INDEX idx_pun_cta_id (pun_cta_id),
+    INDEX idx_pun_usr_id (pun_usr_id)
+);
+
 
 -- 6. Citas_Servicios
 CREATE TABLE citas_servicios (
@@ -72,7 +92,24 @@ CREATE TABLE citas_servicios (
     PRIMARY KEY (cta_srv_cita_id, cta_srv_servicio_id)
 );
 
--- 7. Usuarios_Servicios
+
+-- 7. pts_transactions
+CREATE TABLE pts_transactions (
+    pts_id INT AUTO_INCREMENT PRIMARY KEY,
+    pts_usr_id INT NOT NULL, -- Referencia al usuario
+    pts_type VARCHAR(20) NOT NULL, -- 'earn', 'redeem', 'reset'
+    pts_amount INT NOT NULL, -- Cantidad de puntos
+    pts_description TEXT, -- Descripción de la transacción
+    pts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pts_usr_id) REFERENCES usuarios(usr_id) ON DELETE CASCADE,
+    INDEX idx_pts_usr_id (pts_usr_id),
+    INDEX idx_pts_type (pts_type)
+);
+
+
+
+
+-- 8. Usuarios_Servicios
 CREATE TABLE usuarios_servicios (
     usr_srv_usuario_id INT NOT NULL,
     usr_srv_servicio_id INT NOT NULL,
@@ -82,7 +119,7 @@ CREATE TABLE usuarios_servicios (
     PRIMARY KEY (usr_srv_usuario_id, usr_srv_servicio_id)
 );
 
--- 8. Tipos_Accion y Logs
+-- 9. Tipos_Accion y Logs
 CREATE TABLE tipos_accion (
     tipo_accion_id INT AUTO_INCREMENT PRIMARY KEY,
     tipo_accion_descripcion VARCHAR(100),
@@ -101,7 +138,7 @@ CREATE TABLE logs (
     INDEX idx_log_fecha (log_fecha)
 );
 
--- 9. Metodos_Pago y Pagos
+-- 10. Metodos_Pago y Pagos
 CREATE TABLE metodos_pago (
     pago_id INT AUTO_INCREMENT PRIMARY KEY,
     pago_nombre VARCHAR(50) NOT NULL UNIQUE,
@@ -112,7 +149,7 @@ CREATE TABLE metodos_pago (
 
 
 
--- 10. Estados_Pagos
+-- 11. Estados_Pagos
 CREATE TABLE estados_pagos (
     estado_pago_id INT AUTO_INCREMENT PRIMARY KEY,
     estado_pago_nombre VARCHAR(50) NOT NULL UNIQUE,

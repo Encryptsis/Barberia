@@ -8,41 +8,46 @@ use Illuminate\Support\Facades\DB;
 class RolesTableSeeder extends Seeder
 {
     /**
-     * Ejecutar las migraciones de la base de datos.
+     * Run the database seeds.
      *
      * @return void
      */
     public function run()
     {
-        // Definir los roles a insertar
-        $roles = [
+        DB::table('roles')->insert([
             [
                 'rol_nombre' => 'Administrador',
-                'rol_descripcion' => 'Tiene acceso completo a todas las funcionalidades y configuraciones del sistema',
+                'rol_descripcion' => 'Usuario con acceso completo al sistema.',
                 'rol_nivel' => 1,
                 'rol_activo' => true,
-            ],
-            [
-                'rol_nombre' => 'Barbero',
-                'rol_descripcion' => 'Encargado de realizar servicios de peluquería y cortes de cabello a los clientes',
-                'rol_nivel' => 2,
-                'rol_activo' => true,
-            ],
-            [
-                'rol_nombre' => 'Facialista',
-                'rol_descripcion' => 'Responsable de realizar tratamientos faciales y cuidados de la piel a los clientes',
-                'rol_nivel' => 2,
-                'rol_activo' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'rol_nombre' => 'Cliente',
-                'rol_descripcion' => 'Usuario del sistema que puede solicitar servicios y agendar citas',
+                'rol_descripcion' => 'Usuario que agenda y utiliza los servicios.',
+                'rol_nivel' => 2,
+                'rol_activo' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'rol_nombre' => 'Barbero',
+                'rol_descripcion' => 'Profesional que realiza servicios de barbería.',
                 'rol_nivel' => 3,
                 'rol_activo' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
-        ];
-
-        // Insertar los roles en la base de datos
-        DB::table('roles')->insert($roles);
+            [
+                'rol_nombre' => 'Facialista',
+                'rol_descripcion' => 'Profesional que realiza tratamientos faciales.',
+                'rol_nivel' => 3,
+                'rol_activo' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            // Añade otros roles según tus necesidades
+        ]);
     }
 }

@@ -14,23 +14,32 @@ class EstadosCitasSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('estados_citas')->insertOrIgnore([
-            [
-                'estado_nombre' => 'Pendiente',
-                'estado_descripcion' => 'La cita ha sido creada y está pendiente de confirmación.',
-            ],
+        DB::table('estados_citas')->insert([
             [
                 'estado_nombre' => 'Confirmada',
-                'estado_descripcion' => 'La cita ha sido confirmada por el profesional.',
+                'estado_descripcion' => 'La cita ha sido confirmada.',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'estado_nombre' => 'Cancelada',
                 'estado_descripcion' => 'La cita ha sido cancelada.',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'estado_nombre' => 'Completada',
-                'estado_descripcion' => 'La cita se completó satisfactoriamente.',
+                'estado_descripcion' => 'La cita ha sido completada exitosamente.',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
+            [
+                'estado_nombre' => 'Pendiente',
+                'estado_descripcion' => 'La cita está pendiente de confirmación.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            // Añade otros estados según tus necesidades
         ]);
     }
 }
