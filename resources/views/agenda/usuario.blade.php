@@ -1,3 +1,5 @@
+<!-- resources/views/appointments/citas.blade.php -->
+
 @extends('layouts.app')
 
 @section('title', 'Agenda')
@@ -7,7 +9,7 @@
     <link href='https://unpkg.com/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
 
     <style>
-        /* Estilos existentes */
+        /* Estilos existentes y personalizados */
         body {
             margin: 0;
             font-family: Cambria, Georgia, serif;
@@ -17,7 +19,7 @@
             background-attachment: fixed;
             background-position: center;
         } 
-        /* Estilos personalizados */
+        /* Estilos personalizados para el calendario y formulario */
         .fc-toolbar h2 {
             color: white; /* Texto del mes */
             font-size: 1rem; /* Reducir tamaño de fuente */
@@ -208,6 +210,25 @@
             <li>Confirmación</li>                     <!-- Índice 3 -->
         </ul>
 
+        <!-- Sección de Puntos de Fidelidad -->
+        <div class="mb-4">
+            <div class="card" id="pointsSection"> <!-- Añadido ID para actualizar dinámicamente -->
+                <div class="card-body">
+                    <h5 class="card-title">Puntos de Fidelidad</h5>
+                    <p class="card-text">
+                        <strong>Saldo Actual:</strong> {{ $userPoints }} puntos
+                    </p>
+                    @if($userPoints >= 100)
+                        <div class="alert alert-info">
+                            ¡Felicidades! Has acumulado {{ $userPoints }} puntos. Tienes derecho a una <strong>cita gratuita</strong>.
+                        </div>
+                    @else
+                        <p>Acumula 100 puntos para obtener una cita gratuita.</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+
         <div id="appointmentForm" class="mt-4">
             <!-- Paso 1: Selección de Servicio y Profesional -->
             <div class="step active" id="step-1">
@@ -233,6 +254,14 @@
                             No hay personal disponible para ese servicio. Por favor, elige otro servicio.
                         </small>
                     </div>
+                    @if($userPoints >= 100)
+                        <div class="form-check mt-3">
+                            <input class="form-check-input" type="checkbox" value="1" id="use_free_appointment" name="use_free_appointment">
+                            <label class="form-check-label" for="use_free_appointment">
+                                Usar mi cita gratuita
+                            </label>
+                        </div>
+                    @endif
                     <button type="button" class="btn btn-primary next-step" id="to-step-2">Siguiente</button>
                 </form>
             </div>
@@ -255,8 +284,7 @@
                     <button type="button" class="btn btn-secondary prev-step">Atrás</button>
                     <button type="button" class="btn btn-success" id="confirmBooking">Confirmar Reserva</button>
                 </div>
-                
-                <button type="button" class="btn btn-info" id="addService" style="display:none;">Agregar más servicios</button>
+                <!-- Eliminar el botón "Agregar más servicios" de Paso 3 -->
             </div>
 
             <!-- Paso 4: Confirmación -->
@@ -265,7 +293,7 @@
                 <div id="confirmationMessage" class="mt-3">
                     <!-- Mensaje de confirmación -->
                 </div>
-                <button type="button" class="btn btn-primary" onclick="window.location.reload();">Agendar Otra Cita</button>
+                <button type="button" class="btn btn-primary mt-3" onclick="window.location.reload();">Agendar Otra Cita</button>
             </div>
         </div>
     </section>
@@ -318,6 +346,8 @@
 
     <!-- Incluir el script de FullCalendar -->
     <script src='https://unpkg.com/fullcalendar@5.10.1/main.min.js'></script>
+    <!-- Incluir SweetAlert2 para mejores alertas -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Incluir jQuery desde CDN -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -337,6 +367,7 @@
         var selectedServiceId;
         var selectedAttendantId;
         var selectedDateTime;
+        var useFreeAppointment = 0; // Variable para almacenar si se usará cita gratuita
 
         $(document).ready(function() {
             // Configurar AJAX para incluir el token CSRF en los encabezados
@@ -421,7 +452,7 @@
 
                         // Resaltar el evento seleccionado
                         calendar.getEvents().forEach(function(event) {
-                            event.setProp('classNames', []);
+                            event.setProp('classNames', ['available-slot']);
                         });
                         info.event.setProp('classNames', ['available-slot', 'selected']);
 
@@ -435,7 +466,7 @@
                 calendar.render();
             }
 
-            // Evento para el cambio de servicio
+            // Evento para el cambio de servicio en Paso 1
             $('#service').on('change', function() {
                 var serviceId = $(this).val();
                 if (serviceId) {
@@ -474,6 +505,7 @@
             $('#to-step-2').on('click', function() {
                 selectedServiceId = $('#service').val();
                 selectedAttendantId = $('#attendant').val();
+                useFreeAppointment = $('#use_free_appointment').is(':checked') ? 1 : 0;
 
                 if (selectedServiceId && selectedAttendantId) {
                     // Pasar al paso 2
@@ -486,21 +518,11 @@
                     // Inicializar el calendario
                     initializeCalendar();
                 } else {
-                    alert('Por favor, selecciona un servicio y un profesional.');
-                }
-            });
-
-            // Evento para el botón "Atrás" en el Paso 2 y Paso 3
-            $('.prev-step').on('click', function() {
-                var currentStep = $(this).closest('.step').attr('id');
-                $('.step').removeClass('active');
-
-                if (currentStep === 'step-2') {
-                    $('#step-1').addClass('active');
-                    updateProgressBar(0); // Índice del paso 1
-                } else if (currentStep === 'step-3') {
-                    $('#step-2').addClass('active');
-                    updateProgressBar(1); // Índice del paso 2
+                    Swal.fire(
+                        'Error',
+                        'Por favor, selecciona un servicio y un profesional.',
+                        'error'
+                    );
                 }
             });
 
@@ -520,16 +542,39 @@
                         <p><strong>Profesional:</strong> ${$('#attendant option:selected').text()}</p>
                         <p><strong>Fecha:</strong> ${selectedDateTime.toLocaleDateString()}</p>
                         <p><strong>Hora:</strong> ${selectedDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        ${useFreeAppointment ? '<p><strong>Cita Gratuita:</strong> Sí</p>' : '<p><strong>Cita Gratuita:</strong> No</p>'}
                     `);
                 } else {
-                    alert('Por favor, selecciona una fecha y hora para tu cita.');
+                    Swal.fire(
+                        'Error',
+                        'Por favor, selecciona una fecha y hora para tu cita.',
+                        'error'
+                    );
+                }
+            });
+
+            // Evento para el botón "Atrás" en Paso 2 y Paso 3
+            $('.prev-step').on('click', function() {
+                var currentStep = $(this).closest('.step').attr('id');
+                $('.step').removeClass('active');
+
+                if (currentStep === 'step-2') {
+                    $('#step-1').addClass('active');
+                    updateProgressBar(0); // Índice del paso 1
+                } else if (currentStep === 'step-3') {
+                    $('#step-2').addClass('active');
+                    updateProgressBar(1); // Índice del paso 2
                 }
             });
 
             // Evento para confirmar la reserva en Paso 3
             $('#confirmBooking').on('click', function() {
                 if (!selectedDateTime) {
-                    alert('Por favor, selecciona una fecha y hora para tu cita.');
+                    Swal.fire(
+                        'Error',
+                        'Por favor, selecciona una fecha y hora para tu cita.',
+                        'error'
+                    );
                     return;
                 }
 
@@ -539,13 +584,14 @@
                     professional_id: selectedAttendantId,
                     fecha: selectedDateTime.toISOString().split('T')[0], // Formato YYYY-MM-DD
                     hora: selectedDateTime.toTimeString().split(' ')[0], // Formato HH:MM:SS
+                    use_free_appointment: useFreeAppointment, // 1 o 0
                 };
 
                 console.log('Datos a enviar:', data); // Añadir para depuración
 
                 // Enviar solicitud AJAX para guardar la cita
                 $.ajax({
-                    url: "{{ route('save.appointment') }}",
+                    url: "{{ route('citas.saveAppointment') }}",
                     type: 'POST',
                     dataType: 'json',
                     data: data,
@@ -564,8 +610,33 @@
                                     ${response.success}
                                 </div>
                             `);
+
+                            // Actualizar el saldo de puntos de fidelidad
+                            if(response.userPoints !== undefined){
+                                $('#pointsSection').html(`
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Puntos de Fidelidad</h5>
+                                            <p class="card-text">
+                                                <strong>Saldo Actual:</strong> ${response.userPoints} puntos
+                                            </p>
+                                            ${response.userPoints >= 100 ? `
+                                                <div class="alert alert-info">
+                                                    ¡Felicidades! Has acumulado ${response.userPoints} puntos. Tienes derecho a una <strong>cita gratuita</strong>.
+                                                </div>
+                                            ` : `
+                                                <p>Acumula 100 puntos para obtener una cita gratuita.</p>
+                                            `}
+                                        </div>
+                                    </div>
+                                `);
+                            }
                         } else if (response.error) {
-                            alert(response.error);
+                            Swal.fire(
+                                'Error',
+                                response.error,
+                                'error'
+                            );
                         }
                     },
                     error: function(xhr) {
@@ -578,21 +649,38 @@
                             $.each(errors, function(key, value) {
                                 errorMessages += value + '\n';
                             });
-                            alert(errorMessages);
+                            Swal.fire(
+                                'Error de Validación',
+                                errorMessages,
+                                'error'
+                            );
                         } else if (xhr.status === 409) {
                             // Conflicto: intervalo ya reservado
-                            alert(xhr.responseJSON.error);
+                            Swal.fire(
+                                'Conflicto',
+                                xhr.responseJSON.error,
+                                'error'
+                            );
                         } else if (xhr.status === 401) {
-                            alert('No estás autenticado. Por favor, inicia sesión.');
-                            window.location.href = "{{ route('login') }}";
+                            Swal.fire(
+                                'No Autorizado',
+                                'No estás autenticado. Por favor, inicia sesión.',
+                                'error'
+                            ).then(() => {
+                                window.location.href = "{{ route('login') }}";
+                            });
                         } else {
-                            alert('Ocurrió un error al guardar la cita. Por favor, inténtalo de nuevo.');
+                            Swal.fire(
+                                'Error',
+                                'Ocurrió un error al confirmar la reserva. Por favor, inténtalo de nuevo.',
+                                'error'
+                            );
                         }
                     }
                 });
             });
 
-            // Evento para agregar más servicios (si es necesario)
+            // Evento para agregar más servicios en Paso 4
             $('#addService').on('click', function() {
                 $('#addServiceModal').modal('show');
             });
@@ -601,9 +689,49 @@
             $('#additional-services-form').on('submit', function(e) {
                 e.preventDefault();
                 // Lógica para agregar más servicios
-                // Por ahora, simplemente cerramos el modal
-                $('#addServiceModal').modal('hide');
-                alert('Servicio adicional agregado exitosamente.');
+                // Por ahora, simplemente cerramos el modal y actualizamos la interfaz
+                var additionalServiceId = $('#additional-service').val();
+                var additionalAttendantId = $('#additional-attendant').val();
+                var additionalTime = $('#additional-time').val();
+
+                if(additionalServiceId && additionalAttendantId && additionalTime){
+                    // Aquí deberías implementar la lógica para agregar el servicio adicional
+                    // Por ejemplo, enviar una solicitud AJAX al servidor para manejar la adición de servicios
+                    // Después de agregar, actualizar el resumen y puntos si es necesario
+
+                    // Simulación de éxito
+                    $('#addServiceModal').modal('hide');
+                    Swal.fire(
+                        'Éxito',
+                        'Servicio adicional agregado exitosamente.',
+                        'success'
+                    ).then(() => {
+                        // Opcional: Actualizar el resumen de la reserva
+                        $('#summary').append(`
+                            <p><strong>Servicio Adicional:</strong> ${$('#additional-service option:selected').text()}</p>
+                            <p><strong>Profesional:</strong> ${$('#additional-attendant option:selected').text()}</p>
+                            <p><strong>Hora:</strong> ${additionalTime}</p>
+                        `);
+                        // Opcional: Actualizar puntos de fidelidad si aplica
+                    });
+                } else {
+                    Swal.fire(
+                        'Error',
+                        'Por favor, completa todos los campos para agregar el servicio adicional.',
+                        'error'
+                    );
+                }
+            });
+
+            // Función para manejar la selección de cita gratuita en Paso 1
+            $('#use_free_appointment').on('change', function() {
+                if ($(this).is(':checked')) {
+                    Swal.fire(
+                        'Atención',
+                        'Al usar una cita gratuita, se deducirán 100 puntos de tu saldo.',
+                        'info'
+                    );
+                }
             });
         });
     </script>

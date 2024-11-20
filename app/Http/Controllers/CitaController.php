@@ -2,16 +2,80 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\Cita;
 use App\Models\Servicio;
 use App\Models\Usuario;
 use App\Models\EstadoCita;
+use App\Models\PunPenalty;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Models\PtsTransaction;
+use Illuminate\Support\Facades\Log;
+
 
 class CitaController extends Controller
 {
+// CitaController.php
+
+    public function confirmArrival(Request $request, Cita $cita)
+    {
+        try {
+            // Verificar que el usuario es el profesional asignado a la cita
+            $user = Auth::user();
+
+            if ($cita->cta_profesional_id !== $user->usr_id) {
+                return response()->json(['error' => 'No tienes permiso para confirmar esta cita.'], 403);
+            }
+
+            // Validar los datos
+            $request->validate([
+                'punctuality_status' => 'required|in:on_time,late',
+            ]);
+
+            $punctualityStatus = $request->input('punctuality_status');
+
+            // Verificar si la cita ya fue confirmada
+            if ($cita->cta_arrival_confirmed) {
+                return response()->json(['error' => 'Esta cita ya ha sido confirmada.'], 400);
+            }
+
+            // Actualizar la cita
+            $cita->cta_arrival_confirmed = true;
+            $cita->cta_punctuality_status = $punctualityStatus;
+            $cita->cta_arrival_time = now();
+
+            if ($punctualityStatus === 'on_time') {
+                // Asignar puntos al cliente
+                $cliente = $cita->cliente;
+                $cliente->addPoints(10, "Cita completada el {$cita->cta_fecha} a las {$cita->cta_hora}");
+            } else if ($punctualityStatus === 'late') {
+                // Aplicar penalización (opcional)
+                PunPenalty::create([
+                    'pun_cta_id' => $cita->cta_id,
+                    'pun_usr_id' => $cita->cliente->usr_id,
+                    'pun_amount' => 5.00, // Ejemplo de monto de penalización
+                    'pun_applied_at' => now(),
+                ]);
+
+                // Opcional: restar puntos o notificar al cliente
+                // Por ejemplo:
+                // $cliente->usr_points = max($cliente->usr_points - 5, 0);
+                // $cliente->save();
+            }
+
+            $cita->save();
+
+            return response()->json(['success' => 'Llegada confirmada correctamente.']);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['error' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            \Log::error('Error en confirmArrival: ' . $e->getMessage());
+            return response()->json(['error' => 'Error interno del servidor.'], 500);
+        }
+    }
+
 
     // Métodos existentes...
 
@@ -22,14 +86,19 @@ class CitaController extends Controller
      */
     public function index()
     {
-        // Obtener las citas del usuario autenticado, ordenadas por fecha descendente
-        $citas = Cita::where('cta_cliente_id', Auth::id())
+        Log::info('Accediendo a /my-appointments en el método index.');
+    
+        $user = Auth::user();
+        $citas = Cita::where('cta_cliente_id', $user->usr_id)
                      ->with(['servicios', 'profesional', 'estadoCita'])
                      ->orderBy('cta_fecha', 'desc')
                      ->get();
-
-        return view('appointments/citas', compact('citas'));
+        $userPoints = $user->usr_points;
+    
+        return view('appointments.citas', compact('citas', 'userPoints'));
     }
+    
+    
 
     /**
      * Mostrar el formulario para editar una cita específica.
@@ -39,22 +108,23 @@ class CitaController extends Controller
      */
     public function edit(Cita $cita)
     {
-        // Verificar que la cita pertenece al usuario autenticado
-        if ($cita->cta_cliente_id !== Auth::id()) {
-            return redirect()->route('my.appointments')->with('error', 'No tienes permiso para editar esta cita.');
+        $user = Auth::user();
+    
+        // Verificar si el usuario es el cliente o el profesional asignado
+        if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
+            return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para editar esta cita.');
         }
     
         // Obtener todos los servicios para el dropdown
         $servicios = Servicio::all();
     
-        // Obtener el servicio actual de la cita
+        // Obtener los profesionales asociados al servicio actual de la cita
         $servicioActual = $cita->servicios->first();
-    
-        // Obtener los profesionales asociados al servicio actual de la cita usando la relación
         $profesionales = $servicioActual ? $servicioActual->usuarios()->get() : collect();
     
-        return view('appointments/edit', compact('cita', 'servicios', 'profesionales'));
+        return view('appointments.edit', compact('cita', 'servicios', 'profesionales'));
     }
+    
     
 
     /**
@@ -66,9 +136,11 @@ class CitaController extends Controller
      */
     public function update(Request $request, Cita $cita)
     {
-        // Verificar que la cita pertenece al usuario autenticado
-        if ($cita->cta_cliente_id !== Auth::id()) {
-            return redirect()->route('my.appointments')->with('error', 'No tienes permiso para actualizar esta cita.');
+        $user = Auth::user();
+    
+        // Verificar si el usuario es el cliente o el profesional asignado
+        if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
+            return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para actualizar esta cita.');
         }
     
         // Validar los datos del formulario
@@ -106,8 +178,9 @@ class CitaController extends Controller
         // Actualizar los servicios asociados
         $cita->servicios()->sync([$request->input('service')]);
     
-        return redirect()->route('my.appointments')->with('success', 'Cita actualizada exitosamente.');
+        return redirect()->route('mi.agenda')->with('success', 'Cita actualizada exitosamente.');
     }
+    
     
 
     /**
@@ -117,18 +190,19 @@ class CitaController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy(Cita $cita)
-    {
-        \Log::info('Datos de la cita:', ['cta_id' => $cita->cta_id, 'cta_cliente_id' => $cita->cta_cliente_id]);
-        \Log::info('ID de usuario autenticado:', ['auth_id' => Auth::id()]);
-    
-        if ($cita->cta_cliente_id !== Auth::id()) {
-            return redirect()->route('my.appointments')->with('error', 'No tienes permiso para eliminar esta cita.');
-        }
-    
-        $cita->delete();
-    
-        return redirect()->route('my.appointments')->with('success', 'Cita eliminada exitosamente.');
+{
+    $user = Auth::user();
+
+    // Verificar si el usuario es el cliente o el profesional asignado
+    if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
+        return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para eliminar esta cita.');
     }
+
+    $cita->delete();
+
+    return redirect()->route('mi.agenda')->with('success', 'Cita eliminada exitosamente.');
+}
+
     
 
     // Métodos existentes...
@@ -218,35 +292,52 @@ public function getAvailableTimes(Request $request)
     }
 }
 
+// app/Http/Controllers/CitaController.php
+
+// app/Http/Controllers/CitaController.php
 
 public function saveAppointment(Request $request)
 {
     try {
-        \Log::info('Entrando en saveAppointment');
+        Log::info('Entrando en saveAppointment');
 
         // Verificar autenticación
-        $user = auth()->user();
-        \Log::info('Usuario autenticado:', ['user_id' => $user ? $user->usr_id : 'null']);
+        $user = Auth::user();
+        Log::info('Usuario autenticado:', ['user_id' => $user ? $user->usr_id : 'null']);
 
         if (!$user) {
-            \Log::warning('Usuario no autenticado en saveAppointment');
+            Log::warning('Usuario no autenticado en saveAppointment');
             return response()->json(['error' => 'No estás autenticado. Por favor, inicia sesión.'], 401);
         }
 
-        // Validar los datos recibidos
-        $request->validate([
+        // Definir reglas de validación
+        $rules = [
             'service_id' => 'required|integer|exists:servicios,srv_id',
             'professional_id' => 'required|integer|exists:usuarios,usr_id',
             'fecha' => 'required|date_format:Y-m-d',
             'hora' => 'required|date_format:H:i:s',
+            'use_free_appointment' => 'sometimes|boolean',
+        ];
+
+        $request->validate($rules, [
+            'hora.date_format' => 'El campo hora debe tener el formato HH:MM:SS.',
         ]);
 
-        \Log::info('Datos validados correctamente');
+        Log::info('Datos validados correctamente');
 
         $serviceId = $request->input('service_id');
         $professionalId = $request->input('professional_id');
         $fecha = $request->input('fecha');
         $hora = $request->input('hora');
+        $useFreeAppointment = $request->input('use_free_appointment') ? true : false;
+
+        Log::info('Datos recibidos:', [
+            'service_id' => $serviceId,
+            'professional_id' => $professionalId,
+            'fecha' => $fecha,
+            'hora' => $hora,
+            'use_free_appointment' => $useFreeAppointment,
+        ]);
 
         // Verificar si el intervalo está disponible
         $existingAppointment = Cita::where('cta_profesional_id', $professionalId)
@@ -255,8 +346,25 @@ public function saveAppointment(Request $request)
             ->first();
 
         if ($existingAppointment) {
-            \Log::info('Intervalo ya reservado', ['cta_id' => $existingAppointment->cta_id]);
+            Log::info('Intervalo ya reservado', ['cta_id' => $existingAppointment->cta_id]);
             return response()->json(['error' => 'El intervalo seleccionado ya está reservado. Por favor, elige otro.'], 409);
+        }
+
+        // Asignar el estado correcto
+        if ($useFreeAppointment) {
+            $estadoId = DB::table('estados_citas')->where('estado_nombre', 'Gratis')->value('estado_id');
+            Log::info('Estado "Gratis" obtenido:', ['estado_id' => $estadoId]);
+            if (!$estadoId) {
+                Log::error('Estado "Gratis" no encontrado en estados_citas');
+                return response()->json(['error' => 'Estado de cita gratuita no configurado correctamente.'], 500);
+            }
+        } else {
+            $estadoId = DB::table('estados_citas')->where('estado_nombre', 'Confirmada')->value('estado_id');
+            Log::info('Estado "Confirmada" obtenido:', ['estado_id' => $estadoId]);
+            if (!$estadoId) {
+                Log::error('Estado "Confirmada" no encontrado en estados_citas');
+                return response()->json(['error' => 'Estado de cita confirmada no configurado correctamente.'], 500);
+            }
         }
 
         // Crear la cita
@@ -265,25 +373,60 @@ public function saveAppointment(Request $request)
             'cta_profesional_id' => $professionalId,
             'cta_fecha' => $fecha,
             'cta_hora' => $hora,
-            'cta_estado_id' => 1,
+            'cta_estado_id' => $estadoId,
+            'cta_is_free' => $useFreeAppointment,
+            // Laravel manejará 'cta_created_at' y 'cta_updated_at' automáticamente
         ]);
 
-        \Log::info('Cita creada exitosamente', ['cta_id' => $cita->cta_id]);
+        Log::info('Cita creada exitosamente', ['cta_id' => $cita->cta_id]);
 
         // Asociar el servicio a la cita
         $cita->servicios()->attach($serviceId);
-        \Log::info('Servicio asociado a la cita', ['servicio_id' => $serviceId]);
+        Log::info('Servicio asociado a la cita', ['servicio_id' => $serviceId]);
+
+        // Si la cita es gratuita, actualizar el estado del usuario
+        if ($useFreeAppointment) {
+            // Verificar si el usuario tiene suficientes puntos
+            if ($user->usr_points < 100) {
+                Log::warning('Usuario intenta canjear una cita gratuita sin suficientes puntos', ['user_id' => $user->usr_id]);
+                return response()->json(['error' => 'No tienes suficientes puntos para una cita gratuita.'], 400);
+            }
+
+            // Deduce 100 puntos del usuario
+            $user->usr_points -= 100;
+            $user->save();
+
+            // Registrar la redención de puntos
+            PtsTransaction::create([
+                'pts_usr_id' => $user->usr_id,
+                'pts_type' => 'redeem',
+                'pts_amount' => -100,
+                'pts_description' => 'Redención por Cita Gratuita',
+                'pts_created_at' => now(),
+            ]);
+
+            // Enviar notificación al usuario (si tienes configurado)
+            // $user->notify(new FreeAppointmentUsed($cita));
+
+            Log::info('Cita gratuita usada por el usuario', ['user_id' => $user->usr_id, 'cta_id' => $cita->cta_id]);
+        }
+
+        Log::info('Cita reservada exitosamente');
 
         return response()->json(['success' => 'Tu cita ha sido reservada exitosamente.'], 200);
 
     } catch (\Illuminate\Validation\ValidationException $e) {
-        \Log::error('Error de validación en saveAppointment: ', $e->errors());
+        Log::error('Error de validación en saveAppointment: ', $e->errors());
         return response()->json(['error' => $e->errors()], 422);
     } catch (\Exception $e) {
-        \Log::error('Error en saveAppointment: ' . $e->getMessage());
-        return response()->json(['error' => 'Error interno del servidor: ' . $e->getMessage()], 500);
+        Log::error('Error en saveAppointment: ' . $e->getMessage());
+        return response()->json(['error' => 'Error interno del servidor.'], 500);
     }
 }
+
+
+
+
 
 // app/Http/Controllers/CitaController.php
 
@@ -307,90 +450,5 @@ public function miAgenda()
 }
 
 
-public function editMiAgenda(Cita $cita)
-{
-    $user = Auth::user();
 
-    // Verificar si el usuario es el profesional asignado a la cita
-    if ($cita->cta_profesional_id !== $user->usr_id) {
-        return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para editar esta cita.');
-    }
-
-    // Obtener todos los servicios para el dropdown
-    $servicios = Servicio::all();
-
-    // Obtener los profesionales asociados al servicio actual de la cita
-    $servicioActual = $cita->servicios->first();
-    $profesionales = $servicioActual ? $servicioActual->usuarios()->get() : collect();
-
-    return view('myagenda.edit_mi_agenda', compact('cita', 'servicios', 'profesionales'));
-}
-
-
-public function updateMiAgenda(Request $request, Cita $cita)
-{
-    $user = Auth::user();
-
-    // Verificar si el usuario es el profesional asignado a la cita
-    if ($cita->cta_profesional_id !== $user->usr_id) {
-        return redirect()->route('myagenda.agenda')->with('error', 'No tienes permiso para actualizar esta cita.');
-    }
-
-    // Validar los datos del formulario
-    $request->validate([
-        'service'   => 'required|integer|exists:servicios,srv_id',
-        'attendant' => 'required|integer|exists:usuarios,usr_id',
-        'fecha'     => 'required|date|after_or_equal:today',
-        'hora'      => 'required|date_format:H:i',
-    ], [
-        'hora.date_format' => 'El campo hora debe tener el formato HH:MM.',
-    ]);
-
-    // Procesar la hora para asegurarse de que los minutos son '00'
-    $horaConSegundos = $request->input('hora') . ':00';
-
-    // Verificar si el intervalo está disponible (excepto para la cita actual)
-    $existingAppointment = Cita::where('cta_profesional_id', $request->input('attendant'))
-        ->where('cta_fecha', $request->input('fecha'))
-        ->where('cta_hora', $horaConSegundos)
-        ->where('cta_id', '!=', $cita->cta_id)
-        ->first();
-
-    if ($existingAppointment) {
-        return redirect()->back()->withErrors(['hora' => 'El intervalo seleccionado ya está reservado. Por favor, elige otro.']);
-    }
-
-    // Actualizar la cita con los nuevos datos
-    $cita->cta_profesional_id = $request->input('attendant');
-    $cita->cta_fecha = $request->input('fecha');
-    $cita->cta_hora = $horaConSegundos;
-    // Actualizar otros campos si es necesario
-
-    $cita->save();
-
-    // Actualizar los servicios asociados
-    $cita->servicios()->sync([$request->input('service')]);
-
-    return redirect()->route('mi.agenda')->with('success', 'Cita eliminada exitosamente.');
-}
-
-
-public function destroyMiAgenda(Cita $cita)
-{
-    $user = Auth::user();
-
-    // Verificar si el usuario es el profesional asignado a la cita
-    if ($cita->cta_profesional_id !== $user->usr_id) {
-        return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para eliminar esta cita.');
-    }
-
-    $cita->delete();
-
-    return redirect()->route('mi.agenda')->with('success', 'Cita eliminada exitosamente.');
-}
-
-
-    
-
-    
 }

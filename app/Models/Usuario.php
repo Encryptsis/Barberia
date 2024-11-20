@@ -29,6 +29,8 @@ class Usuario extends Authenticatable
         'usr_recuperacion_token',
         'usr_recuperacion_expira',
         'usr_ultimo_acceso',
+        'usr_points',
+        'free_appointment_available', // Añadido
     ];
 
     protected $hidden = [
@@ -46,6 +48,27 @@ class Usuario extends Authenticatable
     {
         return $this->role && strcasecmp($this->role->rol_nombre, 'Administrador') === 0;
     }
+
+// Usuario.php
+
+// app/Models/Usuario.php
+
+public function addPoints($amount, $description)
+{
+    // Crear una transacción de puntos
+    PtsTransaction::create([
+        'pts_usr_id' => $this->usr_id,
+        'pts_type' => $amount >= 0 ? 'earn' : 'redeem', // 'earn' para ganar puntos, 'redeem' para canjear
+        'pts_amount' => $amount,
+        'pts_description' => $description,
+        'pts_created_at' => now(),
+    ]);
+
+    // Actualizar el saldo de puntos del usuario
+    $this->usr_points += $amount;
+    $this->save();
+}
+
 
     public function getAuthPassword()
     {

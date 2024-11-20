@@ -19,13 +19,16 @@ Route::middleware(['auth'])->group(function () {
     // Nueva ruta para obtener profesionales por servicio
     Route::get('/get-professionals/{service_id}', [UsuarioController::class, 'getProfessionals'])->name('get.professionals');
     // Nueva ruta para guardar la cita
-    Route::post('/save-appointment', [CitaController::class, 'saveAppointment'])->name('save.appointment');
+    Route::post('/save-appointment', [CitaController::class, 'saveAppointment'])->name('citas.saveAppointment');
 
       // Rutas para "Mi Agenda"
       Route::get('/mi-agenda', [CitaController::class, 'miAgenda'])->name('mi.agenda');
       Route::get('/mi-agenda/{cita}/edit', [CitaController::class, 'editMiAgenda'])->name('mi.agenda.edit');
       Route::put('/mi-agenda/{cita}', [CitaController::class, 'updateMiAgenda'])->name('mi.agenda.update');
       Route::delete('/mi-agenda/{cita}', [CitaController::class, 'destroyMiAgenda'])->name('mi.agenda.destroy');
+
+    // Ruta para confirmar la llegada
+    Route::post('/citas/{cita}/confirm-arrival', [CitaController::class, 'confirmArrival'])->name('citas.confirmArrival');
 });
 
 // Rutas para autenticación y registro (solo para invitados)

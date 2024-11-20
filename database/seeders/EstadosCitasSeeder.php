@@ -39,7 +39,12 @@ class EstadosCitasSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
-            // Añade otros estados según tus necesidades
+            [
+                'estado_nombre' => 'Gratis',
+                'estado_descripcion' => 'La cita es gratuita y no requiere costo alguno.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

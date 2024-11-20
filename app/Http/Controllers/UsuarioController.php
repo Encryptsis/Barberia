@@ -165,14 +165,17 @@ class UsuarioController extends Controller
     public function agenda()
     {
         $usuario = Auth::user(); // Obtener el usuario autenticado
-
+    
+        // Calcular los puntos de fidelidad del usuario
+        $userPoints = $usuario->usr_points ?? 0; // Usa 0 como predeterminado si no existe
+    
         // Obtener todos los servicios desde la base de datos
         $servicios = Servicio::all();
-
-        // Pasar los servicios y el usuario a la vista 'usuario'
-        return view('agenda.usuario', compact('usuario', 'servicios'));
+    
+        // Pasar los servicios, el usuario y los puntos a la vista 'usuario'
+        return view('agenda.usuario', compact('usuario', 'servicios', 'userPoints'));
     }
-
+    
     public function getProfessionals($service_id)
     {
         // Validar que el servicio existe
