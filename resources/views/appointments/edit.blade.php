@@ -80,6 +80,8 @@
                                 </option>
                             @endfor
                         </select>
+                        <!-- Elemento para mostrar mensajes de error o no disponibilidad -->
+                        <div id="attendant-error" class="form-text text-danger" style="display: none;"></div>
                     </div>
 
                     <button type="submit" class="btn btn-success">Actualizar Cita</button>
@@ -102,37 +104,43 @@
                 var serviceId = $(this).val();
                 if (serviceId) {
                     $.ajax({
-                        url: "{{ route('get.professionals', '') }}/" + serviceId,
+                        url: "{{ route('citas.getProfessionals', '') }}/" + serviceId,
                         type: 'GET',
                         dataType: 'json',
                         success: function(data) {
                             $('#attendant').empty();
+                            $('#attendant-error').hide(); // Ocultar cualquier mensaje previo
                             if (data.length > 0) {
                                 $('#attendant').append('<option value="">Seleccionar...</option>');
                                 $.each(data, function(key, value) {
                                     $('#attendant').append('<option value="' + value.usr_id + '">' + value.usr_nombre_completo + '</option>');
                                 });
                             } else {
-                                $('#attendant').append('<option value="">No hay profesionales disponibles</option>');
+                                $('#attendant').append('<option value="">Seleccionar...</option>');
+                                $('#attendant-error').text('No hay profesionales disponibles para el servicio seleccionado.').show();
                             }
                         },
                         error: function(xhr, status, error) {
                             console.error('Error al obtener los profesionales:', error);
                             $('#attendant').empty();
-                            $('#attendant').append('<option value="">Error al cargar profesionales</option>');
+                            $('#attendant').append('<option value="">Seleccionar...</option>');
+                            $('#attendant-error').text('Hubo un error al cargar los profesionales. Por favor, intenta nuevamente más tarde.').show();
                         }
                     });
                 } else {
                     $('#attendant').empty();
                     $('#attendant').append('<option value="">Seleccionar...</option>');
+                    $('#attendant-error').hide(); // Ocultar cualquier mensaje previo
                 }
             });
-
+    
             // Pre-cargar los profesionales si el servicio ya está seleccionado (en caso de edición)
             var initialServiceId = $('#service').val();
             if (initialServiceId) {
                 $('#service').trigger('change');
             }
+
         });
     </script>
+    
 @endsection

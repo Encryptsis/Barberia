@@ -140,7 +140,7 @@ class CitaController extends Controller
     
         // Verificar si el usuario es el cliente o el profesional asignado
         if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
-            return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para actualizar esta cita.');
+            return redirect()->route('my.appointments')->with('error', 'No tienes permiso para actualizar esta cita.');
         }
     
         // Validar los datos del formulario
@@ -178,7 +178,7 @@ class CitaController extends Controller
         // Actualizar los servicios asociados
         $cita->servicios()->sync([$request->input('service')]);
     
-        return redirect()->route('mi.agenda')->with('success', 'Cita actualizada exitosamente.');
+        return redirect()->route('my.appointments')->with('success', 'Cita actualizada exitosamente.');
     }
     
     
@@ -190,18 +190,18 @@ class CitaController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy(Cita $cita)
-{
-    $user = Auth::user();
+    {
+        $user = Auth::user();
 
-    // Verificar si el usuario es el cliente o el profesional asignado
-    if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
-        return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para eliminar esta cita.');
+        // Verificar si el usuario es el cliente o el profesional asignado
+        if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
+            return redirect()->route('my.appointments')->with('error', 'No tienes permiso para eliminar esta cita.');
+        }
+
+        $cita->delete();
+
+        return redirect()->route('my.appointments')->with('success', 'Cita eliminada exitosamente.');
     }
-
-    $cita->delete();
-
-    return redirect()->route('mi.agenda')->with('success', 'Cita eliminada exitosamente.');
-}
 
     
 
@@ -213,13 +213,22 @@ class CitaController extends Controller
      * @param  int  $serviceId
      * @return \Illuminate\Http\Response
      */
-    public function getProfessionals($serviceId)
+    /*public function getProfessionals($serviceId)
     {
-        // Obtener los profesionales que ofrecen el servicio especificado
-        $profesionales = Usuario::where('srv_id', $serviceId)->get(['usr_id', 'usr_nombre_completo']);
+        // Validar que el servicio existe
+        $servicio = Servicio::find($serviceId);
+        if (!$servicio) {
+            return response()->json(['error' => 'Servicio no encontrado.'], 404);
+        }
 
+        // Obtener los usuarios (profesionales) que pueden realizar el servicio
+        $profesionales = $servicio->usuarios()
+            ->where('usuarios.usr_activo', 1)
+            ->get(['usuarios.usr_id', 'usuarios.usr_nombre_completo']);
+
+        // Devolver los profesionales en formato JSON
         return response()->json($profesionales);
-    }
+    }*/
 
     /**
      * Obtener los tiempos disponibles para un profesional en un rango de fechas.

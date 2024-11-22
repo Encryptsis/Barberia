@@ -404,7 +404,7 @@
                         endTime: '19:00', // 7:00 pm
                     },
                     slotMinTime: '11:00:00',
-                    slotMaxTime: '19:00:00', // 7:00 pm
+                    slotMaxTime: '21:00:00', // 7:00 pm
                     slotDuration: '01:00:00', // Intervalos de 1 hora
                     slotLabelInterval: '01:00', // Etiquetas cada 1 hora
                     slotLabelFormat: {
@@ -428,7 +428,7 @@
                     },
                     events: function(fetchInfo, successCallback, failureCallback) {
                         $.ajax({
-                            url: "{{ route('get.available.times') }}",
+                            url: "{{ route('citas.getAvailableTimes') }}",
                             type: 'GET',
                             dataType: 'json',
                             data: {
@@ -471,7 +471,7 @@
                 var serviceId = $(this).val();
                 if (serviceId) {
                     $.ajax({
-                        url: "{{ route('get.professionals', '') }}/" + serviceId,
+                        url: "{{ route('citas.getProfessionals', '') }}/" + serviceId,
                         type: 'GET',
                         dataType: 'json',
                         success: function(data) {
