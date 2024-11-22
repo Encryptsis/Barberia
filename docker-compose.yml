@@ -100,7 +100,6 @@ services:
             - '/dev/shm:/dev/shm'
         networks:
             - sail
-    # Servicio phpMyAdmin
     phpmyadmin:
         image: phpmyadmin/phpmyadmin
         environment:

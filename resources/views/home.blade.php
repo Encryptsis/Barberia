@@ -14,7 +14,7 @@
     </div>
 </div>
 
-<img src="{{ Vite::asset('resources/images/wildbeer_barbershp&bar.jpeg') }}" alt="barber" class="hero-image"/>
+<img src="{{ Vite::asset('resources/images/wildbeer_barbershp_bar.jpeg') }}" alt="barber" class="hero-image"/>
 <section class="secciones">
     <h2 class="titulo-secciones"><i class="bi bi-file-person-fill"></i> THE DEER TEAM</h2>
     <div class="partes">

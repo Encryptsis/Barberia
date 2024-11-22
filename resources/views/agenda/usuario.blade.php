@@ -13,7 +13,7 @@
         body {
             margin: 0;
             font-family: Cambria, Georgia, serif;
-            background-image: url("{{ Vite::asset('public/Imagenes/background.jpeg') }}"); 
+            background-image: url("{{ asset('Imagenes/background.jpeg') }}"); 
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;

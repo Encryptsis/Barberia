@@ -1,5 +1,3 @@
-<!-- resources/views/layouts/app.blade.php -->
-
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -17,8 +15,6 @@
         <!-- CSS Personalizado -->
         @vite(['resources/css/acceso.css'])
     
-        <!-- Otros estilos específicos de cada vista -->
-        @stack('styles')
 
 </head>
 <body class="page-background">

@@ -8,9 +8,12 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/generales.css',
+                'resources/css/acceso.css',
                 'resources/css/preloader.css',
                 'resources/js/index.js',        // Añadir index.js
+                'resources/js/app.js',
                 'resources/js/preloader.js',
+                'resources/js/assets.js',
             ],
             refresh: true,
         }),
