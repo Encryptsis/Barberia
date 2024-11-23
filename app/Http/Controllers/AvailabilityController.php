@@ -28,8 +28,8 @@ class AvailabilityController extends Controller
                 ->whereBetween('cta_fecha', [$startDate->toDateString(), $endDate->toDateString()])
                 ->get();
 
-            // Generar intervalos disponibles
-            $availableTimes = [];
+            // Generar eventos
+            $events = [];
 
             $workStartTime = '11:00';
             $workEndTime = '21:00';
@@ -41,28 +41,38 @@ class AvailabilityController extends Controller
 
                 while ($currentTime->lt($endTime)) {
                     // Verificar si el intervalo está ocupado
-                    $isOccupied = $existingAppointments->contains(function ($appointment) use ($currentTime) {
+                    $appointment = $existingAppointments->first(function ($appointment) use ($currentTime) {
                         return $appointment->cta_fecha === $currentTime->toDateString() &&
                             $appointment->cta_hora === $currentTime->format('H:i:s');
                     });
 
-
-                    if (!$isOccupied) {
-                        $availableTimes[] = [
+                    if ($appointment) {
+                        // Slot ocupado
+                        $events[] = [
+                            'title' => '', // Puedes dejarlo vacío o poner 'Reservada'
+                            'start' => $currentTime->toISOString(),
+                            'end' => $currentTime->copy()->addMinutes($intervalMinutes)->toISOString(),
+                            'backgroundColor' => '#dc3545', // Rojo (Bootstrap)
+                            'borderColor' => '#dc3545',
+                            'classNames' => ['booked-slot'], // Clase personalizada
+                        ];
+                    } else {
+                        // Slot disponible
+                        $events[] = [
                             'title' => '', // Título vacío para evitar texto
                             'start' => $currentTime->toISOString(),
                             'end' => $currentTime->copy()->addMinutes($intervalMinutes)->toISOString(),
                             'backgroundColor' => '#28a745', // Verde más vibrante
                             'borderColor' => '#28a745',
-                            'classNames' => ['available-slot'] // Clase personalizada para estilos adicionales si es necesario
+                            'classNames' => ['available-slot'], // Clase personalizada
                         ];
-                    } 
+                    }
 
                     $currentTime->addMinutes($intervalMinutes);
                 }
             }
 
-            return response()->json($availableTimes);
+            return response()->json($events);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);

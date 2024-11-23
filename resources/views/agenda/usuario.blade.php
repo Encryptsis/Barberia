@@ -56,25 +56,22 @@
             color: transparent !important; /* Ocultar texto */
         }
         /* Estilos para las celdas de eventos ocupados */
-.fc-event.booked-slot {
-    background-color: #dc3545 !important; /* Rojo (Bootstrap) */
-    border: none;
-    border-radius: 3px; /* Bordes más redondeados */
-    cursor: not-allowed; /* Cursor de no permitido */
-    font-size: 0.8rem; /* Reducir tamaño de fuente */
-    padding: 2px 4px; /* Reducir padding */
-    text-align: center;
-    color: transparent !important; /* Ocultar texto */
-}
+        .fc-event.booked-slot {
+            background-color: #dc3545 !important; /* Rojo (Bootstrap) */
+            border: none;
+            border-radius: 3px; /* Bordes más redondeados */
+            cursor: not-allowed; /* Cursor de no permitido */
+            font-size: 0.8rem; /* Reducir tamaño de fuente */
+            padding: 2px 4px; /* Reducir padding */
+            text-align: center;
+            color: transparent !important; /* Ocultar texto */
+        }
 
-/* Estilos para el evento seleccionado */
-.fc-event.selected {
-    background-color: #0000ff !important; /* Azul */
-}
         /* Estilos para el evento seleccionado */
         .fc-event.selected {
-            background-color: #0000ff!important; /* Rojo */
+            background-color: #0000ff !important; /* Azul */
         }
+                
         @media (max-width: 768px) {
             #calendar {
                 width: 100%; /* Hacer el calendario responsive */
@@ -404,7 +401,7 @@
                         }
                     },
                     locale: 'es',
-                    selectable: true,
+                    selectable: false, // Desactivar selección de rangos
                     selectMirror: true,
                     allDaySlot: false, // Ocultar el espacio de "todo el día"
                     initialDate: today, // Fecha inicial: hoy
@@ -447,28 +444,56 @@
                                 end: fetchInfo.endStr,
                             },
                             success: function(data) {
-                                console.log('Horas disponibles:', data);
+                                console.log('Horas disponibles y ocupadas:', data);
                                 successCallback(data);
                             },
                             error: function(xhr, status, error) {
-                                console.error('Error al obtener las horas disponibles:', error);
+                                console.error('Error al obtener las horas disponibles y ocupadas:', error);
                                 failureCallback(error);
                             }
                         });
                     },
                     eventClick: function(info) {
-                        selectedDateTime = info.event.start;
+                        var classNames = info.event.classNames;
+
+                        // Agregar log para verificar las clases del evento
+                        console.log('Clases del evento:', classNames);
+
+                        var isBooked = classNames.includes('booked-slot');
+
+                        if (isBooked) {
+                            Swal.fire(
+                                'Horario Ocupado',
+                                'Este horario ya está reservado. Por favor, elige otro horario.',
+                                'error'
+                            );
+                            return; // No hacer nada más si está ocupado
+                        }
+
+                        // Obtener la fecha y hora en la zona horaria local
+                        var eventStart = new Date(info.event.start);
+                        selectedDateTime = eventStart;
+
                         console.log('Fecha y hora seleccionadas:', selectedDateTime);
 
-                        // Resaltar el evento seleccionado
+                        // Remover la clase 'selected' de todos los eventos
                         calendar.getEvents().forEach(function(event) {
-                            event.setProp('classNames', ['available-slot']);
+                            if(event.classNames.includes('selected')) {
+                                // Crear una nueva lista de clases sin 'selected'
+                                var newClassNames = event.classNames.filter(c => c !== 'selected');
+                                event.setProp('classNames', newClassNames);
+                            }
                         });
-                        info.event.setProp('classNames', ['available-slot', 'selected']);
 
-                        // Añadir log para verificar que el evento es de sábado
-                        var dayOfWeek = selectedDateTime.getDay(); // 0: Domingo, 6: Sábado
-                        console.log('Día de la semana seleccionado:', dayOfWeek); // 6 para Sábado
+                        // Añadir la clase 'selected' al evento actual
+                        var newClasses = info.event.classNames.slice(); // Clonar array
+                        if(!newClasses.includes('selected')) {
+                            newClasses.push('selected');
+                            info.event.setProp('classNames', newClasses);
+                        }
+
+                        // Opcional: Mostrar detalles de la cita seleccionada
+                        // Puedes agregar más lógica aquí si lo deseas
                     },
                     height: 'auto', // Ajustar automáticamente la altura del calendario
                 });
