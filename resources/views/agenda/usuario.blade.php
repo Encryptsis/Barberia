@@ -55,9 +55,25 @@
             text-align: center;
             color: transparent !important; /* Ocultar texto */
         }
+        /* Estilos para las celdas de eventos ocupados */
+.fc-event.booked-slot {
+    background-color: #dc3545 !important; /* Rojo (Bootstrap) */
+    border: none;
+    border-radius: 3px; /* Bordes más redondeados */
+    cursor: not-allowed; /* Cursor de no permitido */
+    font-size: 0.8rem; /* Reducir tamaño de fuente */
+    padding: 2px 4px; /* Reducir padding */
+    text-align: center;
+    color: transparent !important; /* Ocultar texto */
+}
+
+/* Estilos para el evento seleccionado */
+.fc-event.selected {
+    background-color: #0000ff !important; /* Azul */
+}
         /* Estilos para el evento seleccionado */
         .fc-event.selected {
-            background-color: #dc3545 !important; /* Rojo */
+            background-color: #0000ff!important; /* Rojo */
         }
         @media (max-width: 768px) {
             #calendar {
@@ -190,12 +206,6 @@
             padding: 0; /* Eliminar padding en las secciones del calendario */
         }
 
-        /* Forzar que todos los eventos disponibles sean verdes, incluidos los sábados */
-        .fc-event.available-slot {
-            background-color: #28a745 !important; /* Verde más vibrante */
-            border-color: #28a745 !important;
-            color: transparent !important; /* Ocultar texto */
-        }
     </style> 
 
 
@@ -401,10 +411,10 @@
                     businessHours: {
                         daysOfWeek: [0, 1, 2, 3, 4, 5, 6], // Domingo a Sábado
                         startTime: '11:00',
-                        endTime: '19:00', // 7:00 pm
+                        endTime: '21:00', // 9:00 pm
                     },
                     slotMinTime: '11:00:00',
-                    slotMaxTime: '21:00:00', // 7:00 pm
+                    slotMaxTime: '21:00:00', // 9:00 pm
                     slotDuration: '01:00:00', // Intervalos de 1 hora
                     slotLabelInterval: '01:00', // Etiquetas cada 1 hora
                     slotLabelFormat: {
@@ -695,11 +705,6 @@
                 var additionalTime = $('#additional-time').val();
 
                 if(additionalServiceId && additionalAttendantId && additionalTime){
-                    // Aquí deberías implementar la lógica para agregar el servicio adicional
-                    // Por ejemplo, enviar una solicitud AJAX al servidor para manejar la adición de servicios
-                    // Después de agregar, actualizar el resumen y puntos si es necesario
-
-                    // Simulación de éxito
                     $('#addServiceModal').modal('hide');
                     Swal.fire(
                         'Éxito',

@@ -5,6 +5,8 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\CitaController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\ArrivalController;
+use App\Http\Controllers\AvailabilityController;
 
 /*
 |--------------------------------------------------------------------------
@@ -85,13 +87,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/save-appointment', [CitaController::class, 'saveAppointment'])->name('saveAppointment');
 
         // Confirmar llegada a una cita
-        Route::post('/{cita}/confirm-arrival', [CitaController::class, 'confirmArrival'])->name('confirmArrival');
+        Route::post('/{cita}/confirm-arrival', [ArrivalController::class, 'confirmArrival'])->name('confirmArrival');
 
         // Ruta para obtener profesionales desde CitaController
         Route::get('/get-professionals/{service_id}', [UsuarioController::class, 'getProfessionals'])->name('getProfessionals');
         
         // Obtener tiempos disponibles para citas
-        Route::get('/get-available-times', [CitaController::class, 'getAvailableTimes'])->name('getAvailableTimes');
+        Route::get('/get-available-times', [AvailabilityController::class, 'getAvailableTimes'])->name('getAvailableTimes');
     });
     
     /*

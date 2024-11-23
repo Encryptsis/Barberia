@@ -23,9 +23,7 @@
 
         <!-- Formulario de Edición de Cita -->
         <div class="card mb-4">
-            <div class="card-header bg-info text-white">
-                <strong>Editar Cita</strong>
-            </div>
+
             <div class="card-body">
                 <form action="{{ route('citas.update', $cita->cta_id) }}" method="POST">
                     @csrf

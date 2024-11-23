@@ -37,6 +37,14 @@
             </div>
         @endif
 
+        @if(session('success_delete'))
+            <div class="alert alert-primary alert-dismissible fade show" role="alert">
+                {{ session('success_delete') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+        @endif
+
+
         @if(session('error'))
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 {{ session('error') }}
@@ -47,62 +55,65 @@
         <!-- Listado de Citas -->
         @if($citas->isEmpty())
             <p class="text-center">No tienes citas programadas.</p>
-        @else
-            <div class="table-responsive">
-                <table class="table table-striped table-hover align-middle">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Servicio</th>
-                            <th>Profesional</th>
-                            <th>Fecha</th>
-                            <th>Hora</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($citas as $citaItem)
+            @else
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-dark">
                             <tr>
-                                <td>{{ $citaItem->servicios->pluck('srv_nombre')->join(', ') }}</td>
-                                <td>
-                                    @if($citaItem->cta_is_free)
-                                        <span class="badge bg-info">Gratis</span>
-                                    @elseif($citaItem->profesional)
-                                        {{ $citaItem->profesional->usr_nombre_completo }}
-                                    @else
-                                        <span class="badge bg-secondary">Sin Profesional</span>
-                                    @endif
-                                </td>
-                                <td>{{ \Carbon\Carbon::parse($citaItem->cta_fecha)->format('d/m/Y') }}</td>
-                                <td>{{ \Carbon\Carbon::parse($citaItem->cta_hora)->format('H:i') }}</td>
-                                <td>
-                                    @if($citaItem->cta_is_free)
-                                        <span class="badge bg-info">Gratis</span>
-                                    @elseif($citaItem->estadoCita->estado_nombre == 'Confirmada')
-                                        <span class="badge bg-success">{{ $citaItem->estadoCita->estado_nombre }}</span>
-                                    @elseif($citaItem->estadoCita->estado_nombre == 'Cancelada')
-                                        <span class="badge bg-danger">{{ $citaItem->estadoCita->estado_nombre }}</span>
-                                    @else
-                                        <span class="badge bg-secondary">{{ $citaItem->estadoCita->estado_nombre }}</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <a href="{{ route('citas.edit', $citaItem->cta_id) }}" class="btn btn-sm btn-warning">Editar</a>
-                                    
-                                    <form action="{{ route('citas.destroy', $citaItem->cta_id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta cita?');" style="display:inline-block;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
-                                    </form>
-                                </td>
+                                <th>Servicio</th>
+                                <th>Profesional</th>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
+                        </thead>
+                        <tbody>
+                            @foreach($citas as $citaItem)
+                                <tr>
+                                    <td>{{ $citaItem->servicios->pluck('srv_nombre')->join(', ') }}</td>
+                                    <td>
+                                        @if($citaItem->cta_is_free)
+                                            <span class="badge bg-info">Gratis</span>
+                                        @elseif($citaItem->profesional)
+                                            {{ $citaItem->profesional->usr_nombre_completo }}
+                                        @else
+                                            <span class="badge bg-secondary">Sin Profesional</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ \Carbon\Carbon::parse($citaItem->cta_fecha)->format('d/m/Y') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($citaItem->cta_hora)->format('H:i') }}</td>
+                                    <td>
+                                        @if($citaItem->cta_is_free)
+                                            <span class="badge bg-info">Gratis</span>
+                                        @elseif($citaItem->estadoCita->estado_nombre == 'Confirmada')
+                                            <span class="badge bg-success">{{ $citaItem->estadoCita->estado_nombre }}</span>
+                                        @elseif($citaItem->estadoCita->estado_nombre == 'Cancelada')
+                                            <span class="badge bg-danger">{{ $citaItem->estadoCita->estado_nombre }}</span>
+                                        @else
+                                            <span class="badge bg-secondary">{{ $citaItem->estadoCita->estado_nombre }}</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('citas.edit', $citaItem->cta_id) }}" class="btn btn-sm btn-warning">Editar</a>
+                                        
+                                        <form action="{{ route('citas.destroy', $citaItem->cta_id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta cita?');" style="display:inline-block;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
 
-        <!-- Historial de Transacciones de Puntos (Opcional) -->
+        
+        
+        
+            <!-- Historial de Transacciones de Puntos (Opcional) -->
         @if(isset($ptsTransactions) && !$ptsTransactions->isEmpty())
             <div class="mt-5">
                 <h4>Historial de Puntos</h4>
