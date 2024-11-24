@@ -10,10 +10,12 @@ export default defineConfig({
                 'resources/css/generales.css',
                 'resources/css/acceso.css',
                 'resources/css/preloader.css',
+                'resources/css/citas.css',
                 'resources/js/index.js',        // Añadir index.js
                 'resources/js/app.js',
                 'resources/js/preloader.js',
                 'resources/js/assets.js',
+                'resources/js/citas.js',
             ],
             refresh: true,
         }),

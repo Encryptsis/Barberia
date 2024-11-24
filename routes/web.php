@@ -90,7 +90,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{cita}/confirm-arrival', [ArrivalController::class, 'confirmArrival'])->name('confirmArrival');
 
         // Ruta para obtener profesionales desde CitaController
-        Route::get('/get-professionals/{service_id}', [UsuarioController::class, 'getProfessionals'])->name('getProfessionals');
+        Route::get('/get-professionals/{service_id}', [UsuarioController::class, 'getProfessionals'])->name('citas.getProfessionals');
+
         
         // Obtener tiempos disponibles para citas
         Route::get('/get-available-times', [AvailabilityController::class, 'getAvailableTimes'])->name('getAvailableTimes');

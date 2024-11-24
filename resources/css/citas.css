@@ -1,0 +1,193 @@
+    /* Estilos existentes y personalizados */
+    body {
+        margin: 0;
+        font-family: Cambria, Georgia, serif;
+        background-image: url("/Imagenes/background.jpeg");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-position: center;
+    } 
+    /* Estilos personalizados para el calendario y formulario */
+    .fc-toolbar h2 {
+        color: white; /* Texto del mes */
+        font-size: 1rem; /* Reducir tamaño de fuente */
+    }
+    .form-label {
+        color: white; /* Texto de los labels */
+    }
+    #calendar {
+        max-width: 800px; /* Reducir el ancho máximo del calendario */
+        margin: auto;
+        height: auto; /* Ajusta automáticamente la altura */
+    }
+    .fc {
+        background-color: #5a6978; /* Color de fondo del calendario */
+        border: none; /* Eliminar bordes */
+        border-radius: 5px; /* Bordes redondeados */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Añadir sombra */
+    }
+    /* Estilos para las etiquetas de horas */
+    .fc-timegrid-axis-cushion {
+        color: white;
+        font-weight: bold;
+        font-size: 0.8rem; /* Reducir tamaño de fuente */
+    }
+    /* Estilos para las celdas de eventos disponibles */
+    .fc-event.available-slot {
+        background-color: #28a745 !important; /* Verde más vibrante */
+        border: none;
+        border-radius: 3px; /* Bordes más redondeados */
+        cursor: pointer;
+        font-size: 0.8rem; /* Reducir tamaño de fuente */
+        padding: 2px 4px; /* Reducir padding */
+        text-align: center;
+        color: transparent !important; /* Ocultar texto */
+    }
+    /* Estilos para las celdas de eventos ocupados */
+    .fc-event.booked-slot {
+        background-color: #dc3545 !important; /* Rojo (Bootstrap) */
+        border: none;
+        border-radius: 3px; /* Bordes más redondeados */
+        cursor: not-allowed; /* Cursor de no permitido */
+        font-size: 0.8rem; /* Reducir tamaño de fuente */
+        padding: 2px 4px; /* Reducir padding */
+        text-align: center;
+        color: transparent !important; /* Ocultar texto */
+    }
+
+    /* Estilos para el evento seleccionado */
+    .fc-event.selected {
+        background-color: #0000ff !important; /* Azul */
+    }
+            
+    @media (max-width: 768px) {
+        #calendar {
+            width: 100%; /* Hacer el calendario responsive */
+            height: auto; /* Ajustar la altura automáticamente */
+        }
+        .fc-timegrid-axis-cushion {
+            font-size: 0.7rem; /* Reducir aún más tamaño de fuente en móviles */
+        }
+        .fc-event {
+            font-size: 0.7rem; /* Reducir tamaño de fuente de los eventos en móviles */
+        }
+        .fc-toolbar-title {
+            font-size: 0.9rem; /* Reducir tamaño de fuente del título en móviles */
+        }
+        .fc-button {
+            font-size: 0.7rem; /* Reducir tamaño de fuente de los botones en móviles */
+            padding: 4px 6px; /* Reducir padding de los botones en móviles */
+        }
+    }
+    /* Estilos para el formulario multistep */
+    .step {
+        display: none;
+    }
+    .step.active {
+        display: block;
+    }
+    .progressbar {
+        counter-reset: step;
+        margin-bottom: 30px;
+        overflow: hidden;
+        padding-left: 0;
+    }
+    .progressbar li {
+        list-style-type: none;
+        color: gray;
+        text-transform: uppercase;
+        font-size: 12px;
+        width: 25%; /* Cambiar a 25% para 4 pasos */
+        float: left;
+        position: relative;
+        text-align: center;
+        padding: 10px 0;
+    }
+    .progressbar li:before {
+        content: counter(step);
+        counter-increment: step;
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        border: 1px solid gray;
+        display: block;
+        text-align: center;
+        margin: 0 auto 10px auto;
+        border-radius: 50%;
+        background-color: white;
+    }
+    .progressbar li:after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        background-color: gray;
+        top: 15px;
+        left: -50%;
+        z-index: -1;
+    }
+    .progressbar li:first-child:after {
+        content: none;
+    }
+
+    /* Estilos para pasos activos */
+    .progressbar li.active {
+        color: green;
+    }
+    .progressbar li.active:before {
+        border-color: green;
+        background-color: green;
+        color: white;
+    }
+
+    /* Estilos para pasos completados */
+    .progressbar li.completed {
+        color: green;
+    }
+    .progressbar li.completed:before {
+        border-color: green;
+        background-color: green;
+        color: white;
+    }
+
+    /* Estilos para líneas después de pasos completados */
+    .progressbar li.completed + li:after {
+        background-color: green; /* Línea verde cuando el paso anterior está completado */
+    }
+
+    /* Estilos para botones */
+    .btn {
+        margin: 5px;
+    }
+    /* Estilos para el resumen */
+    #summary p {
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 10px;
+        border-radius: 5px;
+        color: white;
+    }
+    /* Estilos para mensajes de confirmación */
+    .alert-success {
+        background-color: rgba(40, 167, 69, 0.8);
+        color: white;
+        padding: 15px;
+        border-radius: 5px;
+    }
+    .alert-danger {
+        background-color: rgba(220, 53, 69, 0.8);
+        color: white;
+        padding: 15px;
+        border-radius: 5px;
+    }
+
+    /* Estilos adicionales para hacer el calendario más compacto */
+    .fc-timegrid-slot {
+        padding: 2px 0; /* Reducir padding */
+    }
+    .fc-timegrid-slot-lane {
+        height: 30px !important; /* Ajustar la altura de cada fila de hora */
+    }
+    .fc-scrollgrid-section-header, .fc-scrollgrid-section-body {
+        padding: 0; /* Eliminar padding en las secciones del calendario */
+    }

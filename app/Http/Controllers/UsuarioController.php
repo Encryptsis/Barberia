@@ -8,6 +8,7 @@ use App\Models\Servicio;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage; // Importación añadida
+use Illuminate\Support\Facades\Log;
 
 class UsuarioController extends Controller
 {
@@ -178,9 +179,12 @@ class UsuarioController extends Controller
     
     public function getProfessionals($service_id)
     {
+
+        Log::info("getProfessionals llamado con service_id: {$service_id}");
         // Validar que el servicio existe
         $servicio = Servicio::find($service_id);
         if (!$servicio) {
+            Log::warning("Servicio con ID {$service_id} no encontrado.");
             return response()->json(['error' => 'Servicio no encontrado.'], 404);
         }
     
@@ -188,7 +192,7 @@ class UsuarioController extends Controller
         $profesionales = $servicio->usuarios()
             ->where('usuarios.usr_activo', 1) // Especificar la tabla para evitar ambigüedad
             ->get(['usuarios.usr_id', 'usuarios.usr_nombre_completo']);
-    
+        Log::info("Profesionales encontrados para service_id {$service_id}: " . $profesionales->count());
         // Devolver los profesionales en formato JSON
         return response()->json($profesionales);
     }
