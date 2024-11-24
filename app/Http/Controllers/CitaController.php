@@ -25,7 +25,7 @@ class CitaController extends Controller
                      
         $userPoints = $user->usr_points;
     
-        return view('appointments.citas', compact('citas', 'userPoints'));
+        return view('appointments.client_appointments', compact('citas', 'userPoints'));
     }
 
     public function edit(Cita $cita)
@@ -44,7 +44,7 @@ class CitaController extends Controller
         $servicioActual = $cita->servicios->first();
         $profesionales = $servicioActual ? $servicioActual->usuarios()->get() : collect();
     
-        return view('appointments.edit', compact('cita', 'servicios', 'profesionales'));
+        return view('appointments.client_appointments_edit', compact('cita', 'servicios', 'profesionales'));
     }
 
     public function update(Request $request, Cita $cita)
@@ -252,6 +252,6 @@ class CitaController extends Controller
                      ->orderBy('cta_fecha', 'desc')
                      ->get();
     
-        return view('myagenda.mi_agenda', compact('citas'));
+        return view('agendas.worker_schedule', compact('citas'));
     }
 }

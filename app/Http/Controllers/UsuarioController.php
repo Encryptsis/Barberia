@@ -116,7 +116,7 @@ class UsuarioController extends Controller
             return redirect()->route('login')->with('error', 'Debes iniciar sesión para acceder a tu perfil.');
         }
 
-        return view('perfil.usuario', compact('usuario'));
+        return view('profile.profile_user', compact('usuario'));
     }
 
     /**
@@ -174,7 +174,7 @@ class UsuarioController extends Controller
         $servicios = Servicio::all();
     
         // Pasar los servicios, el usuario y los puntos a la vista 'usuario'
-        return view('agenda.usuario', compact('usuario', 'servicios', 'userPoints'));
+        return view('agendas.client_schedule', compact('usuario', 'servicios', 'userPoints'));
     }
     
     public function getProfessionals($service_id)

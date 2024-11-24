@@ -102,7 +102,7 @@
                 var serviceId = $(this).val();
                 if (serviceId) {
                     $.ajax({
-                        url: "{{ route('citas.getProfessionals', '') }}/" + serviceId,
+                        url: "{{ route('appointments.getProfessionals', '') }}/" + serviceId,
                         type: 'GET',
                         dataType: 'json',
                         success: function(data) {

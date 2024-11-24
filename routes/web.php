@@ -64,9 +64,9 @@ Route::middleware(['auth'])->group(function () {
     | Rutas de Perfil de Usuario
     |---------------------------------------------------------------------
     */
-    Route::prefix('perfil')->name('perfil.')->group(function () {
-        Route::get('/usuario', [UsuarioController::class, 'perfil'])->name('usuario');
-        Route::post('/usuario', [UsuarioController::class, 'actualizarPerfil'])->name('actualizar');
+    Route::prefix('profile')->name('perfil.')->group(function () {
+        Route::get('/user', [UsuarioController::class, 'perfil'])->name('usuario');
+        Route::post('/user', [UsuarioController::class, 'actualizarPerfil'])->name('actualizar');
     });
 
     /*
@@ -75,14 +75,14 @@ Route::middleware(['auth'])->group(function () {
     |---------------------------------------------------------------------
     */  
     Route::prefix('agenda')->name('agenda.')->group(function () {
-        Route::get('/usuario', [UsuarioController::class, 'agenda'])->name('usuario');
+        Route::get('/user', [UsuarioController::class, 'agenda'])->name('usuario');
     });
      /*
     |---------------------------------------------------------------------
     | Rutas de Citas (Appointments)
     |---------------------------------------------------------------------
     */   
-    Route::prefix('citas')->name('citas.')->group(function () {
+    Route::prefix('citas')->name('appointments.')->group(function () {
         // Guardar una cita
         Route::post('/save-appointment', [CitaController::class, 'saveAppointment'])->name('saveAppointment');
 
@@ -90,7 +90,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{cita}/confirm-arrival', [ArrivalController::class, 'confirmArrival'])->name('confirmArrival');
 
         // Ruta para obtener profesionales desde CitaController
-        Route::get('/get-professionals/{service_id}', [UsuarioController::class, 'getProfessionals'])->name('citas.getProfessionals');
+        Route::get('/get-professionals/{service_id}', [UsuarioController::class, 'getProfessionals'])->name('getProfessionals');
 
         
         // Obtener tiempos disponibles para citas
@@ -114,16 +114,16 @@ Route::middleware(['auth'])->group(function () {
     */
 
     // Ruta para ver las citas del usuario
-    Route::get('/my-appointments', [CitaController::class, 'index'])->name('my.appointments');
+    Route::get('/appointments', [CitaController::class, 'index'])->name('my.appointments');
 
     // Ruta para mostrar el formulario de edición de una cita
-    Route::get('/my-appointments/{cita}/edit', [CitaController::class, 'edit'])->name('citas.edit');
+    Route::get('/appointments/{cita}/edit', [CitaController::class, 'edit'])->name('citas.edit');
     
     // Ruta para actualizar una cita existente
-    Route::put('/my-appointments/{cita}', [CitaController::class, 'update'])->name('citas.update');
+    Route::put('/appointments/{cita}', [CitaController::class, 'update'])->name('citas.update');
     
     // Ruta para eliminar una cita
-    Route::delete('/my-appointments/{cita}', [CitaController::class, 'destroy'])->name('citas.destroy');
+    Route::delete('/appointments/{cita}', [CitaController::class, 'destroy'])->name('citas.destroy');
     });
 
 

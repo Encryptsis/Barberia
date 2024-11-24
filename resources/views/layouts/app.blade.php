@@ -63,7 +63,7 @@
 <body class="page-background" >
     <div class="flex-wrapper">
         <!-- Cabecera -->
-        @include('partials.header')
+        @include('layouts.header')
         
         <!-- Contenido Principal -->
         <main class="content">
@@ -71,7 +71,7 @@
         </main>
 
         <!-- Pie de Página -->
-        @include('partials.footer')
+        @include('layouts.footer')
     </div>
 
     <!-- Cargar jQuery desde CDN (si es necesario) -->

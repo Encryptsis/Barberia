@@ -12,9 +12,9 @@
         <!-- Definir rutas globales para JS -->
         <script>
             window.citasRoutes = {
-                getAvailableTimes: "{{ route('citas.getAvailableTimes') }}",
+                getAvailableTimes: "{{ route('appointments.getAvailableTimes') }}",
                 getProfessionals: "/citas/get-professionals/:service_id",
-                saveAppointment: "{{ route('citas.saveAppointment') }}",
+                saveAppointment: "{{ route('appointments.saveAppointment') }}",
                 login: "{{ route('login') }}"
             };
         </script>
