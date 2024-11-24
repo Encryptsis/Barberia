@@ -207,7 +207,3 @@
     </script>
 
 @endsection
-
-@push('scripts')
-    @vite(['resources/js/index.js', 'resources/js/preloader.js'])
-@endpush
