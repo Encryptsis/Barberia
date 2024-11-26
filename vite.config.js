@@ -16,6 +16,8 @@ export default defineConfig({
                 'resources/js/preloader.js',
                 'resources/js/assets.js',
                 'resources/js/citas.js',
+                'resources/js/user_appointments.js',
+                'resources/js/user_appointments_edit.js',
             ],
             refresh: true,
         }),

@@ -1,5 +1,3 @@
-<!-- resources/views/appointments/citas.blade.php -->
-
 @extends('layouts.app')
 
 @section('title', 'Mis Citas')
@@ -179,78 +177,13 @@
 @endsection
 
 @push('scripts')
-    <!-- Incluir SweetAlert2 para mejores alertas (opcional) -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Incluir jQuery desde una CDN -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
     <script>
-        // Configurar el CSRF token para todas las solicitudes AJAX
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            }
-        });
-
-        $(document).ready(function(){
-            console.log('citas script loaded'); // Log para verificar que el script se está ejecutando
-
-            /**
-             * Función para confirmar la llegada del cliente
-             * @param {number} citaId - ID de la cita
-             * @param {string} status - Estado de puntualidad ('on_time' o 'late')
-             */
-            function confirmArrival(citaId, status) {
-                Swal.fire({
-                    title: 'Confirmar Llegada',
-                    text: "¿Estás seguro de confirmar que el cliente llegó " + (status === 'on_time' ? 'temprano' : 'tarde') + "?",
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, confirmar',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: '{{ route("appointments.confirmArrival", ":id") }}'.replace(':id', citaId),
-                            type: 'POST',
-                            data: {
-                                punctuality_status: status
-                            },
-                            success: function(response){
-                                Swal.fire(
-                                    '¡Confirmado!',
-                                    response.success,
-                                    'success'
-                                ).then(() => {
-                                    location.reload();
-                                });
-                            },
-                            error: function(xhr){
-                                if(xhr.responseJSON && xhr.responseJSON.error){
-                                    Swal.fire(
-                                        'Error',
-                                        xhr.responseJSON.error,
-                                        'error'
-                                    );
-                                } else {
-                                    Swal.fire(
-                                        'Error',
-                                        'Ocurrió un error al confirmar la llegada.',
-                                        'error'
-                                    );
-                                }
-                            }
-                        });
-                    }
-                });
-            }
-
-            // Asignar el evento click a los botones de confirmación de llegada
-            $('.confirm-arrival').on('click', function(){
-                var citaId = $(this).data('id');
-                var status = $(this).data('status');
-                confirmArrival(citaId, status);
-            });
-        });
+        window.appointmentsData = {
+            csrfToken: '{{ csrf_token() }}',
+            confirmArrivalUrl: '{{ route("appointments.confirmArrival", ':id') }}'
+        };
     </script>
+
+    <!-- Incluir el archivo JS compilado con Vite -->
+    @vite('resources/js/user_appointments.js')
 @endpush
