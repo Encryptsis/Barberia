@@ -62,7 +62,7 @@
             <div class="carrusel-inner">
                 <div class="card">
                     
-                    <img src="{{ Vite::asset('resources/images/barberia.jpg') }}" alt="Imagen 1" class="card-img-top"/>
+                    <img src="{{ Vite::asset('resources/images/bar.png') }}" alt="Imagen 1" class="card-img-top"/>
                     <div class="card-body">
                         <h5 class="card-title">HAIRCUT</h5>
                         <p class="card-text">Get te haircut you want with our expert stylist.
@@ -73,7 +73,7 @@
                     </div>
                 </div>
                 <div class="card">
-                    <img src="{{ Vite::asset('resources/images/barberia.jpg') }}" alt="Imagen 2" class="card-img-top"/>
+                    <img src="{{ Vite::asset('resources/images/bar.png') }}" alt="Imagen 2" class="card-img-top"/>
                     <div class="card-body">
                         <h5 class="card-title">FULL CUT</h5>
                         <p class="card-text">Experience our original full haircut package:
@@ -84,7 +84,7 @@
                     </div>
                 </div>
                 <div class="card">
-                    <img src="{{ Vite::asset('resources/images/barberia.jpg') }}" alt="Imagen 3" class="card-img-top"/>
+                    <img src="{{ Vite::asset('resources/images/bar.png') }}" alt="Imagen 3" class="card-img-top"/>
                     <div class="card-body">
                         <h5 class="card-title">KIDS</h5>
                         <p class="card-text">We welcome kids for haircuts! For their comfort and safety,
@@ -95,7 +95,7 @@
                     </div>
                 </div>
                 <div class="card">
-                    <img src="{{ Vite::asset('resources/images/barberia.jpg') }}" alt="Imagen 4" class="card-img-top"/>
+                    <img src="{{ Vite::asset('resources/images/bar.png') }}" alt="Imagen 4" class="card-img-top"/>
                     <div class="card-body">
                         <h5 class="card-title">BEAR GROOMING</h5>
                         <p class="card-text">We offer precise line-ups, shaping, trimming, and shaving.
@@ -106,7 +106,7 @@
                     </div>
                 </div>
                 <div class="card">
-                    <img src="{{ Vite::asset('resources/images/barberia.jpg') }}" alt="Imagen 5" class="card-img-top"/>
+                    <img src="{{ Vite::asset('resources/images/bar.png') }}" alt="Imagen 5" class="card-img-top"/>
                     <div class="card-body">
                         <h5 class="card-title">WILD CUT</h5>
                         <p class="card-text">Come and live the Wild Deer experience, a service in personal care and
@@ -116,7 +116,7 @@
                     </div>
                 </div>
                 <div class="card">
-                    <img src="{{ Vite::asset('resources/images/barberia.jpg') }}" alt="Imagen 5" class="card-img-top"/>
+                    <img src="{{ Vite::asset('resources/images/bar.png') }}" alt="Imagen 5" class="card-img-top"/>
                     <div class="card-body">
                         <h5 class="card-title">FACIAL</h5>
                         <p class="card-text">We apply mask rich in natural ingredients to deeply
@@ -127,7 +127,7 @@
                     </div>
                 </div>
                 <div class="card">
-                    <img src="{{ Vite::asset('resources/images/barberia.jpg') }}" alt="Imagen 6" class="card-img-top"/>
+                    <img src="{{ Vite::asset('resources/images/bar.png') }}" alt="Imagen 6" class="card-img-top"/>
                     <div class="card-body">
                         <h5 class="card-title">LINE UP</h5>
                         <p class="card-text">Defining the lines of the forehead, sideburns and nape,
@@ -137,7 +137,7 @@
                     </div>
                 </div>
                 <div class="card">
-                    <img src="{{ Vite::asset('resources/images/barberia.jpg') }}" alt="Imagen 7" class="card-img-top"/>
+                    <img src="{{ Vite::asset('resources/images/bar.png') }}" alt="Imagen 7" class="card-img-top"/>
                     <div class="card-body">
                         <h5 class="card-title">HYDROGEN OXYGEN</h5>
                         <p class="card-text">Is a non-invasive skin care procedure that uses a special
