@@ -20,6 +20,6 @@ class AgendaController extends Controller
             $query->whereIn('rol_nombre', ['Barbero', 'Facialista']);
         })->with(['citasProfesional.cliente', 'citasProfesional.servicios', 'citasProfesional.estadoCita'])->get();
 
-        return view('agendas.index', compact('workers'));
+        return view('agendas.worker_schedule', compact('workers'));
     }
 }

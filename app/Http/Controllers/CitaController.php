@@ -13,21 +13,6 @@ use Illuminate\Support\Facades\Log;
 //Manejará las operaciones CRUD básicas de las citas, así como la creación de nuevas citas y la visualización de la agenda.
 class CitaController extends Controller
 {
-    public function index()
-    {
-        Log::info('Accediendo a /my-appointments en el método index.');
-    
-        $user = Auth::user();
-        $citas = Cita::where('cta_cliente_id', $user->usr_id)
-                     ->with(['servicios', 'profesional', 'estadoCita'])
-                     ->orderBy('cta_fecha', 'desc')
-                     ->get();
-                     
-        $userPoints = $user->usr_points;
-    
-        return view('appointments.client_appointments', compact('citas', 'userPoints'));
-    }
-
     public function edit(Cita $cita)
     {
         $user = Auth::user();
@@ -44,7 +29,7 @@ class CitaController extends Controller
         $servicioActual = $cita->servicios->first();
         $profesionales = $servicioActual ? $servicioActual->usuarios()->get() : collect();
     
-        return view('appointments.client_appointments_edit', compact('cita', 'servicios', 'profesionales'));
+        return view('appointments.user_appointments_edit', compact('cita', 'servicios', 'profesionales'));
     }
 
     public function update(Request $request, Cita $cita)
@@ -53,7 +38,7 @@ class CitaController extends Controller
     
         // Verificar si el usuario es el cliente o el profesional asignado
         if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
-            return redirect()->route('my.appointments')->with('error', 'No tienes permiso para actualizar esta cita.');
+            return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para actualizar esta cita.');
         }
     
         // Validar los datos del formulario
@@ -91,7 +76,7 @@ class CitaController extends Controller
         // Actualizar los servicios asociados
         $cita->servicios()->sync([$request->input('service')]);
     
-        return redirect()->route('my.appointments')->with('success', 'Cita actualizada exitosamente.');
+        return redirect()->route('my-appointments')->with('success', 'Cita actualizada exitosamente.');
     }
 
     public function destroy(Cita $cita)
@@ -100,12 +85,12 @@ class CitaController extends Controller
 
         // Verificar si el usuario es el cliente o el profesional asignado
         if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
-            return redirect()->route('my.appointments')->with('error', 'No tienes permiso para eliminar esta cita.');
+            return redirect()->route('my-appointments')->with('error', 'No tienes permiso para eliminar esta cita.');
         }
 
         $cita->delete();
 
-        return redirect()->route('my.appointments')->with('success_delete', 'Cita eliminada exitosamente.');
+        return redirect()->route('my-appointments')->with('success_delete', 'Cita eliminada exitosamente.');
     }
 
     public function saveAppointment(Request $request)
@@ -241,17 +226,33 @@ class CitaController extends Controller
         // Obtener el usuario autenticado
         $user = Auth::user();
     
-        // Verificar si el usuario tiene un rol que puede tener una agenda
-        if (!in_array($user->role->rol_nombre, ['Administrador', 'Barbero', 'Facialista'])) {
-            return redirect()->route('home')->with('error', 'No tienes permiso para acceder a esta sección.');
+        // Obtener el nombre del rol del usuario
+        $role = $user->role->rol_nombre;
+
+        // Obtener los puntos del usuario
+        $userPoints = $user->usr_points;
+        
+        // Definir los roles permitidos
+        $allowedRoles = ['Administrador', 'Barbero', 'Facialista', 'Cliente'];  
+
+        // Determinar si el usuario es un trabajador o un cliente
+        $isWorker = in_array($role, ['Administrador', 'Barbero', 'Facialista']);
+
+        if ($isWorker) {
+            // Obtener las citas donde el usuario es el profesional
+            $citas = Cita::where('cta_profesional_id', $user->usr_id)
+                         ->with(['cliente', 'servicios', 'estadoCita'])
+                         ->orderBy('cta_fecha', 'desc')
+                         ->paginate(10); // Paginación, ajusta el número según tus necesidades
+        } else { // Si es cliente
+            // Obtener las citas donde el usuario es el cliente
+            $citas = Cita::where('cta_cliente_id', $user->usr_id)
+                         ->with(['profesional', 'servicios', 'estadoCita'])
+                         ->orderBy('cta_fecha', 'desc')
+                         ->paginate(10); // Paginación
         }
     
-        // Obtener las citas donde el usuario es el profesional
-        $citas = Cita::where('cta_profesional_id', $user->usr_id)
-                     ->with(['cliente', 'servicios', 'estadoCita'])
-                     ->orderBy('cta_fecha', 'desc')
-                     ->get();
-    
-        return view('agendas.worker_schedule', compact('citas'));
+        // Pasar variables adicionales a la vista si es necesario
+        return view('appointments.user_appointments', compact('citas', 'isWorker', 'role', 'userPoints'));
     }
 }

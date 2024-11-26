@@ -41,24 +41,22 @@
                     $role = Auth::user()->role->rol_nombre;
                 @endphp
 
-                @if(in_array($role, ['Administrador', 'Barbero', 'Facialista']))
-                    <li class="nav-item {{ Request::routeIs('mi.agenda') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('mi.agenda') }}">Mi Agenda</a>
-                    </li>
-                @endif
 
-                @if($role === 'Cliente')
-                    <li class="nav-item {{ Request::routeIs('agenda.usuario') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('agenda.usuario') }}">Agenda</a>
-                    </li>
-                    <li class="nav-item {{ Request::routeIs('my.appointments') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('my.appointments') }}">Mis Citas</a>
+            @if($role === 'Cliente')
+                <li class="nav-item {{ Request::routeIs('agenda.usuario') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('agenda.usuario') }}">Book An Appointment</a>
+                </li>
+            @endif
+
+                @if(Auth::check())
+                    <li class="nav-item {{ Request::routeIs('my-appointments') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('my-appointments') }}">My Appointments</a>
                     </li>
                 @endif
 
                 @if($role === 'Administrador')
                     <li class="nav-item {{ Request::routeIs('agendas.index') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('agendas.index') }}">Agendas</a>
+                        <a class="nav-link" href="{{ route('AllSchedules.index') }}">All Schedules</a>
                     </li>
                 @endif
 

@@ -74,10 +74,11 @@ Route::middleware(['auth'])->group(function () {
     | Rutas de Agenda de Usuario
     |---------------------------------------------------------------------
     */  
-    Route::prefix('agenda')->name('agenda.')->group(function () {
+    Route::prefix('BookAnAppointment')->name('agenda.')->group(function () {
         Route::get('/user', [UsuarioController::class, 'agenda'])->name('usuario');
     });
      /*
+
     |---------------------------------------------------------------------
     | Rutas de Citas (Appointments)
     |---------------------------------------------------------------------
@@ -99,22 +100,12 @@ Route::middleware(['auth'])->group(function () {
     
     /*
     |---------------------------------------------------------------------
-    | Rutas de "Mi Agenda"
-    |---------------------------------------------------------------------
-    */
-    Route::get('/mi-agenda', [CitaController::class, 'miAgenda'])->name('mi.agenda');
-    Route::get('/mi-agenda/{cita}/edit', [CitaController::class, 'editMiAgenda'])->name('mi.agenda.edit');
-    Route::put('/mi-agenda/{cita}', [CitaController::class, 'updateMiAgenda'])->name('mi.agenda.update');
-    Route::delete('/mi-agenda/{cita}', [CitaController::class, 'destroyMiAgenda'])->name('mi.agenda.destroy');
-
-    /*
-    |---------------------------------------------------------------------
     | Rutas de "Mis Citas"
     |---------------------------------------------------------------------
     */
 
     // Ruta para ver las citas del usuario
-    Route::get('/appointments', [CitaController::class, 'index'])->name('my.appointments');
+    Route::get('/my-appointments', [CitaController::class, 'miAgenda'])->name('my-appointments');
 
     // Ruta para mostrar el formulario de edición de una cita
     Route::get('/appointments/{cita}/edit', [CitaController::class, 'edit'])->name('citas.edit');
@@ -138,5 +129,5 @@ Route::middleware(['auth'])->group(function () {
 |
 */
 Route::middleware(['auth', 'is_admin'])->group(function () {
-    Route::get('/agendas', [AgendaController::class, 'index'])->name('agendas.index');
+    Route::get('/AllSchedules', [AgendaController::class, 'index'])->name('AllSchedules.index');
 });
