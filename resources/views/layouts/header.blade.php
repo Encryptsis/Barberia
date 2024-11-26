@@ -1,5 +1,3 @@
-<!-- resources/views/partials/header.blade.php -->
-
 <div class="info-bar ">
     <span>MON - SUN: 11.00 A.M. - 08.00 P.M.</span>
     <div class="social-icons">
@@ -18,22 +16,22 @@
     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <ul class="navbar-nav">
             <!-- Enlace Home, siempre visible -->
-            <li class="nav-item {{ Request::routeIs('home') ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('home') }}">Home</a>
+            <li class="nav-item">
+                <a class="nav-link {{ Request::routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Home</a>
             </li>
 
             @guest
                 <!-- Enlaces visibles solo para invitados -->
-                <li class="nav-item {{ Request::routeIs('login') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('login') }}">Login</a>
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::routeIs('login') ? 'active' : '' }}" href="{{ route('login') }}">Login</a>
                 </li>
-                <li class="nav-item me-3 {{ Request::routeIs('register') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('register') }}">Sign Up</a>
+                <li class="nav-item me-3">
+                    <a class="nav-link {{ Request::routeIs('register') ? 'active' : '' }}" href="{{ route('register') }}">Sign Up</a>
                 </li>
             @else
                 <!-- Enlaces visibles solo para usuarios autenticados -->
-                <li class="nav-item {{ Request::routeIs('perfil.usuario') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('perfil.usuario') }}">Profile</a>
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::routeIs('perfil.usuario') ? 'active' : '' }}" href="{{ route('perfil.usuario') }}">Profile</a>
                 </li>
 
                 @php
@@ -41,22 +39,21 @@
                     $role = Auth::user()->role->rol_nombre;
                 @endphp
 
-
-            @if($role === 'Cliente')
-                <li class="nav-item {{ Request::routeIs('agenda.usuario') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('agendar.usuario') }}">Book An Appointment</a>
-                </li>
-            @endif
+                @if($role === 'Cliente')
+                    <li class="nav-item">
+                        <a class="nav-link {{ Request::routeIs('agendar.usuario') ? 'active' : '' }}" href="{{ route('agendar.usuario') }}">Book An Appointment</a>
+                    </li>
+                @endif
 
                 @if(Auth::check())
-                    <li class="nav-item {{ Request::routeIs('my-appointments') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('my-appointments') }}">My Appointments</a>
+                    <li class="nav-item">
+                        <a class="nav-link {{ Request::routeIs('my-appointments') ? 'active' : '' }}" href="{{ route('my-appointments') }}">My Appointments</a>
                     </li>
                 @endif
 
                 @if($role === 'Administrador')
-                    <li class="nav-item {{ Request::routeIs('agendas.index') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('AllSchedules.index') }}">All Schedules</a>
+                    <li class="nav-item">
+                        <a class="nav-link {{ Request::routeIs('AllSchedules.index') ? 'active' : '' }}" href="{{ route('AllSchedules.index') }}">All Schedules</a>
                     </li>
                 @endif
 
@@ -74,3 +71,4 @@
         </ul>
     </div>
 </nav>
+

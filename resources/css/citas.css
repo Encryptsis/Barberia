@@ -191,3 +191,8 @@
     .fc-scrollgrid-section-header, .fc-scrollgrid-section-body {
         padding: 0; /* Eliminar padding en las secciones del calendario */
     }
+
+    .text-white {
+        color: white;
+    }
+    

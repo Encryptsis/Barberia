@@ -129,10 +129,19 @@ body {
     margin-left: 10px; 
 }
 
+
+
 .navbar-brand, .navbar-nav .nav-link {
     color: white; 
     font-size: 1.0rem;
 }
+
+.navbar-nav .nav-item .nav-link.active {
+    color: #ffffff !important; /* Sobrescribe el color definido en generales.css */
+    font-weight: bold; /* Destaca el enlace activo */
+    border-bottom: 2px solid #ffffff; /* Añade un subrayado */
+}
+
 
 .navbar-nav .nav-link:hover{
     color: #EAD8B1; 
@@ -468,3 +477,5 @@ footer {
 .slider-img.active .details p, .slider-img.active .details h2{
     display: block;
 }
+
+

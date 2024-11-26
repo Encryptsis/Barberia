@@ -77,7 +77,7 @@
                     @if($userPoints >= 100)
                         <div class="form-check mt-3">
                             <input class="form-check-input" type="checkbox" value="1" id="use_free_appointment" name="use_free_appointment">
-                            <label class="form-check-label" for="use_free_appointment">
+                            <label class="form-check-label text-white" for="use_free_appointment">
                                 Usar mi cita gratuita
                             </label>
                         </div>
