@@ -44,7 +44,7 @@
 
             @if($role === 'Cliente')
                 <li class="nav-item {{ Request::routeIs('agenda.usuario') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('agenda.usuario') }}">Book An Appointment</a>
+                    <a class="nav-link" href="{{ route('agendar.usuario') }}">Book An Appointment</a>
                 </li>
             @endif
 

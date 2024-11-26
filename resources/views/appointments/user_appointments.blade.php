@@ -5,12 +5,23 @@
 @section('title', 'Mis Citas')
 
 @section('content')
+    @php
+        // Obtener el rol del usuario actual
+        $userRole = Auth::check() ? Auth::user()->role->rol_nombre : null;
+
+        // Determinar si el usuario es un trabajador
+        $isWorker = in_array($userRole, ['Administrador', 'Barbero', 'Facialista']);
+
+        // Determinar si el usuario es un cliente
+        $isClient = $userRole === 'Cliente';
+    @endphp
+
     <!-- Contenedor Principal -->
     <div class="container my-5">
         <div class="mb-7"></div> <!-- Espaciador vacío -->
         <h2 class="mb-4 text-center">Mis Citas</h2>
 
-        @if(Auth::check() && Auth::user()->role->rol_nombre === 'Cliente')
+        @if($isClient)
             <!-- Sección de Puntos de Fidelidad -->
             <div class="mb-4">
                 <div class="card">
@@ -30,7 +41,6 @@
                 </div>
             </div>
         @endif
-    
 
         <!-- Mostrar mensajes de éxito o error -->
         @if(session('success'))
@@ -46,7 +56,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
             </div>
         @endif
-
 
         @if(session('error'))
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -64,13 +73,17 @@
                     <thead class="table-dark">
                         <tr>
                             <th>Servicio</th>
-                            <th>Profesional</th>
+                            @if($isWorker)
+                                <th>Cliente</th>
+                            @else
+                                <th>Profesional</th>
+                            @endif
                             <th>Fecha</th>
                             <th>Hora</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                             <!-- Nueva Columna para Confirmar Llegada Solo para Trabajadores -->
-                            @if(Auth::check() && in_array(Auth::user()->role->rol_nombre, ['Administrador', 'Barbero', 'Facialista']))
+                            @if($isWorker)
                                 <th>Confirmar Llegada</th>
                             @endif
                         </tr>
@@ -79,15 +92,27 @@
                         @foreach($citas as $citaItem)
                             <tr>
                                 <td>{{ $citaItem->servicios->pluck('srv_nombre')->join(', ') }}</td>
-                                <td>
-                                    @if($citaItem->cta_is_free)
-                                        <span class="badge bg-info">Gratis</span>
-                                    @elseif($citaItem->profesional)
-                                        {{ $citaItem->profesional->usr_nombre_completo }}
-                                    @else
-                                        <span class="badge bg-secondary">Sin Profesional</span>
-                                    @endif
-                                </td>
+                                
+                                @if($isWorker)
+                                    <td>
+                                        @if($citaItem->cliente)
+                                            {{ $citaItem->cliente->usr_nombre_completo }}
+                                        @else
+                                            <span class="badge bg-secondary">Sin Cliente</span>
+                                        @endif
+                                    </td>
+                                @else
+                                    <td>
+                                        @if($citaItem->cta_is_free)
+                                            <span class="badge bg-info">Gratis</span>
+                                        @elseif($citaItem->profesional)
+                                            {{ $citaItem->profesional->usr_nombre_completo }}
+                                        @else
+                                            <span class="badge bg-secondary">Sin Profesional</span>
+                                        @endif
+                                    </td>
+                                @endif
+
                                 <td>{{ \Carbon\Carbon::parse($citaItem->cta_fecha)->format('d/m/Y') }}</td>
                                 <td>{{ \Carbon\Carbon::parse($citaItem->cta_hora)->format('H:i') }}</td>
                                 <td>
@@ -111,7 +136,7 @@
                                     </form>
                                 </td>
                                 <!-- Nueva Celda para Confirmar Llegada Solo para Trabajadores -->
-                                @if(Auth::check() && in_array(Auth::user()->role->rol_nombre, ['Administrador', 'Barbero', 'Facialista']))
+                                @if($isWorker)
                                     <td>
                                         @if(!$citaItem->cta_arrival_confirmed && !$citaItem->cta_is_free)
                                             <!-- Botón para Confirmar Llegó Temprano -->
@@ -173,12 +198,12 @@
             /**
              * Función para confirmar la llegada del cliente
              * @param {number} citaId - ID de la cita
-             * @param {string} status - Estado de puntualidad ('early' o 'late')
+             * @param {string} status - Estado de puntualidad ('on_time' o 'late')
              */
             function confirmArrival(citaId, status) {
                 Swal.fire({
                     title: 'Confirmar Llegada',
-                    text: "¿Estás seguro de confirmar que el cliente llegó " + (status === 'early' ? 'temprano' : 'tarde') + "?",
+                    text: "¿Estás seguro de confirmar que el cliente llegó " + (status === 'on_time' ? 'temprano' : 'tarde') + "?",
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Sí, confirmar',

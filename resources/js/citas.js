@@ -259,8 +259,8 @@ $(document).ready(function() {
         var data = {
             service_id: selectedServiceId,
             professional_id: selectedAttendantId,
-            fecha: selectedDateTime.toISOString().split('T')[0], // Formato YYYY-MM-DD
-            hora: selectedDateTime.toTimeString().split(' ')[0], // Formato HH:MM:SS
+            fecha: selectedDateTime.toLocaleDateString('en-CA'), // Formato YYYY-MM-DD en zona local
+            hora: selectedDateTime.toLocaleTimeString('en-GB', { hour12: false }), // Formato HH:MM:SS en zona local
             use_free_appointment: useFreeAppointment, // 1 o 0
         };
 
