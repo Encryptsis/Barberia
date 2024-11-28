@@ -101,7 +101,7 @@
 
          <div class="edit-form" id="editForm" style="display: none;">
             <h3 class="text-center">Edit Profile</h3>
-            <form action="{{ route('perfil.actualizar') }}" method="POST" enctype="multipart/form-data" id="formEdit">
+            <form action="{{ route('perfil.actualizar', ['username' => $usuario->usr_username]) }}" method="POST" enctype="multipart/form-data" id="formEdit">
                 @csrf
                 <div class="mb-3">
                     <label for="usr_nombre_completo" class="form-label">Name:</label>

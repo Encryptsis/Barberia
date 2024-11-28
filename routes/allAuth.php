@@ -10,7 +10,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Perfil de Usuario
     Route::prefix('profile')->name('perfil.')->group(function () {
-        Route::get('/user', [UsuarioController::class, 'perfil'])->name('usuario');
-        Route::post('/user', [UsuarioController::class, 'actualizarPerfil'])->name('actualizar');
+        Route::get('/{username}', [UsuarioController::class, 'perfil'])->name('usuario');
+        Route::post('/{username}', [UsuarioController::class, 'actualizarPerfil'])->name('actualizar');
     });
 });

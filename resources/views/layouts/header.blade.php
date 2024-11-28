@@ -31,7 +31,12 @@
             @else
                 <!-- Enlaces visibles solo para usuarios autenticados -->
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::routeIs('perfil.usuario') ? 'active' : '' }}" href="{{ route('perfil.usuario') }}">Profile</a>
+                    <a 
+                        class="nav-link {{ Request::routeIs('perfil.usuario*') ? 'active' : '' }}" 
+                        href="{{ route('perfil.usuario', ['username' => auth()->user()->usr_username]) }}"
+                    >
+                        Profile
+                    </a>
                 </li>
 
                 @php

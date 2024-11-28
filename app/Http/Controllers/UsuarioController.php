@@ -117,7 +117,7 @@ class UsuarioController extends Controller
     /**
      * Mostrar la página de perfil del usuario.
      */
-    public function perfil()
+    public function perfil($username)
     {
         $usuario = Auth::user(); // Obtener el usuario autenticado
 
@@ -126,16 +126,31 @@ class UsuarioController extends Controller
             return redirect()->route('login')->with('error', 'Debes iniciar sesión para acceder a tu perfil.');
         }
 
+        // Verificar si el nombre de usuario en la URL coincide con el usuario autenticado
+        if ($usuario->usr_username !== $username) {
+            return redirect()->route('perfil.usuario', ['username' => $usuario->usr_username])->with('error', 'No tienes permiso para acceder a este perfil.');
+        }
+
         return view('profile.profile_user', compact('usuario'));
     }
 
     /**
      * Actualizar la información del perfil del usuario.
      */
-    public function actualizarPerfil(Request $request)
+    public function actualizarPerfil(Request $request, $username)
     {
-        $usuario = Auth::user();
-        
+        $usuario = Auth::user(); // Obtener el usuario autenticado
+
+        // Verificar si el usuario está autenticado
+        if (!$usuario) {
+            return redirect()->route('login')->with('error', 'Debes iniciar sesión para actualizar tu perfil.');
+        }
+
+        // Verificar si el nombre de usuario en la URL coincide con el usuario autenticado
+        if ($usuario->usr_username !== $username) {
+            return redirect()->route('perfil.usuario', ['username' => $usuario->usr_username])->with('error', 'No tienes permiso para actualizar este perfil.');
+        }
+
         // Validar los datos del formulario
         $validatedData = $request->validate([
             'usr_nombre_completo' => 'required|string|max:100',
@@ -143,35 +158,32 @@ class UsuarioController extends Controller
             'usr_telefono' => 'nullable|string|max:20',
             'usr_foto_perfil' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Opcional: validar la foto
         ]);
-    
+
         // Actualizar los campos
         $usuario->usr_nombre_completo = $validatedData['usr_nombre_completo'];
         $usuario->usr_correo_electronico = $validatedData['usr_correo_electronico'];
         $usuario->usr_telefono = $validatedData['usr_telefono'];
-    
+
         // Manejar la subida de la foto de perfil si existe
         if ($request->hasFile('usr_foto_perfil')) {
             // Eliminar la foto anterior si existe
-            if ($usuario->usr_foto_perfil) {
-                // Extraer la ruta relativa ('fotos_perfil/filename.jpg')
-                $fotoAnterior = str_replace('storage/', '', $usuario->usr_foto_perfil);
-                if (Storage::disk('public')->exists($fotoAnterior)) {
-                    Storage::disk('public')->delete($fotoAnterior);
-                }
+            if ($usuario->usr_foto_perfil && Storage::disk('public')->exists($usuario->usr_foto_perfil)) {
+                Storage::disk('public')->delete($usuario->usr_foto_perfil);
             }
-    
+
             $image = $request->file('usr_foto_perfil');
             $name = time() . '_' . preg_replace('/\s+/', '_', $image->getClientOriginalName()); // Reemplaza espacios por guiones bajos
             $path = $image->storeAs('fotos_perfil', $name, 'public'); // Almacenar en el disco 'public'
-    
+
             // Actualizar la ruta de la foto en el usuario
             $usuario->usr_foto_perfil = $path; // 'fotos_perfil/filename.jpg'
         }
-    
+
         $usuario->save();
-    
-        return redirect()->route('perfil.usuario')->with('success', 'Perfil actualizado exitosamente.');
+
+        return redirect()->route('perfil.usuario', ['username' => $usuario->usr_username])->with('success', 'Perfil actualizado exitosamente.');
     }
+
 
     public function agenda()
     {
