@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Usuario;
 use Illuminate\Http\Request;
 use App\Models\Servicio;
+use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage; // Importación añadida
@@ -33,8 +34,16 @@ class UsuarioController extends Controller
             'usr_telefono' => 'nullable|string|max:20',
             'usr_correo_electronico' => 'required|email|max:100|unique:usuarios,usr_correo_electronico',
         ]);
-
-        // Crear el nuevo usuario con rol por defecto (Cliente)
+    
+        // Obtener el rol 'Cliente' dinámicamente
+        $clienteRole = Role::where('rol_nombre', 'Cliente')->first();
+    
+        if (!$clienteRole) {
+            // Manejar el error si el rol 'Cliente' no existe
+            return redirect()->back()->with('error', 'El rol "Cliente" no está definido en el sistema.');
+        }
+    
+        // Crear el nuevo usuario con rol 'Cliente'
         $usuario = Usuario::create([
             'usr_username' => $validatedData['usr_username'],
             'usr_password' => Hash::make($validatedData['usr_password']),
@@ -42,12 +51,12 @@ class UsuarioController extends Controller
             'usr_telefono' => $validatedData['usr_telefono'],
             'usr_correo_electronico' => $validatedData['usr_correo_electronico'],
             'usr_activo' => true,
-            'usr_rol_id' => 4, // Asigna el rol 'Cliente' por defecto
+            'usr_rol_id' => $clienteRole->rol_id, // Asigna el rol 'Cliente' dinámicamente
         ]);
-
+    
         // Autenticar al usuario recién registrado
         Auth::login($usuario);
-
+    
         // Verificar si el usuario está autenticado
         if (Auth::check()) {
             // Redireccionar a la página de inicio con un mensaje de éxito
@@ -57,6 +66,7 @@ class UsuarioController extends Controller
             return redirect()->route('login')->with('error', 'No se pudo iniciar sesión automáticamente. Por favor, inicia sesión.');
         }
     }
+    
 
     /**
      * Mostrar el formulario de inicio de sesión.
