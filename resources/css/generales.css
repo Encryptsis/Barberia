@@ -479,3 +479,12 @@ footer {
 }
 
 
+.quote-container {
+    background: rgba(0, 0, 0, 0.8); /* Fondo negro con 80% de opacidad */
+    border-radius: 10px;
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+    margin: 0 auto;
+    max-width: 600px;
+    color: white; /* Asegura que el texto sea blanco */
+}
