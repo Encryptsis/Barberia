@@ -59,18 +59,14 @@
                         </select>
                     </div>
 
-                    <!-- Profesional -->
-                    <div class="mb-3">
-                        <label for="attendant" class="form-label">Profesional</label>
-                        <select class="form-select" id="attendant" name="attendant" required>
-                            <option value="">-- Selecciona un Profesional --</option>
-                            @foreach($profesionales as $profesional)
-                                <option value="{{ $profesional->usr_id }}" {{ $cita->cta_profesional_id == $profesional->usr_id ? 'selected' : '' }}>
-                                    {{ $profesional->usr_nombre_completo }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                <!-- Campo para el Profesional -->
+                <div class="mb-3">
+                    <label for="attendant" class="form-label">Profesional</label>
+                    <select class="form-select" id="attendant" name="attendant" required>
+                        <!-- Las opciones serán cargadas vía JavaScript -->
+                    </select>
+                    
+                </div>
 
                     <!-- Fecha -->
                     <div class="mb-3">
@@ -116,6 +112,7 @@
     <script>
         window.appointmentsEditData = {
             getProfessionalsUrl: "{{ route('appointments.getProfessionals', '') }}",
+            assignedProfessionalId: {{ $cita->cta_profesional_id ?? 'null' }},
         };
     </script>
 

@@ -104,9 +104,8 @@
                                         </td>
                                     @else
                                         <td>
-                                            @if($citaItem->cta_is_free)
-                                                <span class="badge bg-info">Gratis</span>
-                                            @elseif($citaItem->profesional)
+                                           
+                                            @if($citaItem->profesional)
                                                 {{ $citaItem->profesional->usr_nombre_completo }}
                                             @else
                                                 <span class="badge bg-secondary">Sin Profesional</span>

@@ -16,6 +16,10 @@ $(document).ready(function() {
                         $.each(data, function(key, value) {
                             $('#attendant').append('<option value="' + value.usr_id + '">' + value.usr_nombre_completo + '</option>');
                         });
+                        // Establecer el profesional asignado como seleccionado si existe
+                        if (window.appointmentsEditData.assignedProfessionalId) {
+                            $('#attendant').val(window.appointmentsEditData.assignedProfessionalId);
+                        }
                     } else {
                         $('#attendant').append('<option value="">No hay profesionales disponibles</option>');
                     }
