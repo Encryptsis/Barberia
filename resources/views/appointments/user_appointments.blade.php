@@ -147,53 +147,59 @@
                                                 <!-- Botón para Rechazar -->
                                                 <form action="{{ route('appointments.reject', $citaItem->cta_id) }}" method="POST" style="display:inline-block;">
                                                     @csrf
+                                                    <input type="hidden" name="action" value="reject"> <!-- Acción especificada -->
                                                     <button type="submit" class="btn btn-sm btn-danger">Rechazar</button>
                                                 </form>
                                             @elseif($citaItem->estadoCita->estado_nombre == 'Confirmada')
                                                 <!-- Opciones para citas confirmadas -->
                                                 <a href="{{ route('citas.edit', $citaItem->cta_id) }}" class="btn btn-sm btn-warning">Editar</a>
                                                 
-                                                <!-- Botón para Cancelar usando 'reject' -->
+                                                <!-- Botón para Cancelar -->
                                                 <form action="{{ route('appointments.reject', $citaItem->cta_id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta cita?');" style="display:inline-block;">
                                                     @csrf
+                                                    <input type="hidden" name="action" value="cancel"> <!-- Acción especificada -->
                                                     <button type="submit" class="btn btn-sm btn-danger">Cancelar</button>
                                                 </form>
                                             @elseif($citaItem->estadoCita->estado_nombre == 'Cancelada')
                                                 <!-- Opciones para citas canceladas -->
-                                                <button type="button" class="btn btn-sm btn-warning" disabled>Editar</button>
-                                                <button type="button" class="btn btn-sm btn-danger" disabled>Cancelar</button>
+                                                <button type="button" class="btn btn-sm btn-warning" disabled title="Esta cita ha sido cancelada y no se puede editar">Editar</button>
+                                                <button type="button" class="btn btn-sm btn-danger" disabled title="Esta cita ha sido cancelada y no se puede cancelar nuevamente">Cancelar</button>
                                             @endif
                                         @else
                                             @if($citaItem->estadoCita->estado_nombre == 'Pendiente')
                                                 <!-- Acciones para clientes con estado pendiente -->
                                                 <a href="{{ route('citas.edit', $citaItem->cta_id) }}" class="btn btn-sm btn-warning">Editar</a>
                                                 
-                                                <!-- Botón para Cancelar usando 'reject' -->
+                                                <!-- Botón para Cancelar -->
                                                 <form action="{{ route('appointments.reject', $citaItem->cta_id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta cita?');" style="display:inline-block;">
                                                     @csrf
+                                                    <input type="hidden" name="action" value="cancel"> <!-- Acción especificada -->
                                                     <button type="submit" class="btn btn-sm btn-danger">Cancelar</button>
                                                 </form>
                                             @elseif($citaItem->estadoCita->estado_nombre == 'Confirmada')
                                                 <!-- Acciones para clientes con estado confirmada -->
                                                 <a href="{{ route('citas.edit', $citaItem->cta_id) }}" class="btn btn-sm btn-warning">Editar</a>
                                                 
-                                                <!-- Botón para Cancelar usando 'reject' -->
+                                                <!-- Botón para Cancelar -->
                                                 <form action="{{ route('appointments.reject', $citaItem->cta_id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta cita?');" style="display:inline-block;">
                                                     @csrf
+                                                    <input type="hidden" name="action" value="cancel"> <!-- Acción especificada -->
                                                     <button type="submit" class="btn btn-sm btn-danger">Cancelar</button>
                                                 </form>
                                             @elseif($citaItem->estadoCita->estado_nombre == 'Cancelada')
                                                 <!-- Opciones para citas canceladas -->
-                                                <button type="button" class="btn btn-sm btn-warning" disabled>Editar</button>
-                                                <button type="button" class="btn btn-sm btn-danger" disabled>Cancelar</button>
+                                                <button type="button" class="btn btn-sm btn-warning" disabled title="Esta cita ha sido cancelada y no se puede editar">Editar</button>
+                                                <button type="button" class="btn btn-sm btn-danger" disabled title="Esta cita ha sido cancelada y no se puede cancelar nuevamente">Cancelar</button>
                                             @endif
                                         @endif
                                     </td>
                                     
+                                    
                                     <!-- Nueva Celda para Confirmar Llegada Solo para Trabajadores -->
                                     @if($isWorker)
                                         <td>
-                                            @if(!$citaItem->cta_arrival_confirmed && !$citaItem->cta_is_free)
+                                            @if(!$citaItem->cta_arrival_confirmed && !$citaItem->cta_is_free && $citaItem->estadoCita->estado_nombre != 'Cancelada')
+
                                                 <!-- Botón para Confirmar Llegó Temprano -->
                                                 <button 
                                                     class="btn btn-sm btn-success confirm-arrival" 

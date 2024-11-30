@@ -163,10 +163,11 @@ class CitaController extends Controller
                 'use_free_appointment' => $useFreeAppointment,
             ]);
     
-            // Verificar si el intervalo está disponible
+            // Verificar si el intervalo está disponible (solo citas activas)
             $existingAppointment = Cita::where('cta_profesional_id', $professionalId)
                 ->where('cta_fecha', $fecha)
                 ->where('cta_hora', $hora)
+                ->where('cta_activa', true) // **Añadido para considerar solo citas activas**
                 ->first();
     
             if ($existingAppointment) {
@@ -248,6 +249,7 @@ class CitaController extends Controller
         }
     }
     
+    
     public function miAgenda()
     {
         // Obtener el usuario autenticado
@@ -319,27 +321,71 @@ class CitaController extends Controller
             'cta_id' => $cita->cta_id,
             'usuario_id' => Auth::id(),
             'estado_actual' => $cita->estadoCita->estado_nombre,
+            'action' => $request->input('action'), // Acción: 'reject' o 'cancel'
         ]);
     
         $user = Auth::user();
+        $action = $request->input('action');
     
-        // Verificar que el usuario es el profesional asignado
-        if ($cita->cta_profesional_id !== $user->usr_id) {
-            Log::warning('Usuario no autorizado para rechazar la cita', [
+        // Validar que la acción sea válida
+        if (!in_array($action, ['reject', 'cancel'])) {
+            Log::error('Acción inválida en el método reject', [
                 'cta_id' => $cita->cta_id,
+                'action' => $action,
                 'usuario_id' => $user->usr_id,
             ]);
-            return redirect()->route('my-appointments')->with('error', 'No tienes permiso para rechazar esta cita.');
+            return redirect()->route('my-appointments')->with('error', 'Acción inválida.');
         }
     
-        // Verificar que la cita está en estado 'Pendiente'
-        if ($cita->estadoCita->estado_nombre !== 'Pendiente') {
-            Log::warning('Intento de rechazar una cita que no está pendiente', [
-                'cta_id' => $cita->cta_id,
-                'estado_actual' => $cita->estadoCita->estado_nombre,
-                'usuario_id' => $user->usr_id,
-            ]);
-            return redirect()->route('my-appointments')->with('error', 'Solo se pueden rechazar citas pendientes.');
+        if ($action === 'reject') {
+            // Solo profesionales asignados pueden rechazar citas
+            if ($cita->cta_profesional_id !== $user->usr_id) {
+                Log::warning('Usuario no autorizado para rechazar la cita', [
+                    'cta_id' => $cita->cta_id,
+                    'usuario_id' => $user->usr_id,
+                ]);
+                return redirect()->route('my-appointments')->with('error', 'No tienes permiso para rechazar esta cita.');
+            }
+    
+            // Verificar que la cita está en estado 'Pendiente'
+            if ($cita->estadoCita->estado_nombre !== 'Pendiente') {
+                Log::warning('Intento de rechazar una cita que no está pendiente', [
+                    'cta_id' => $cita->cta_id,
+                    'estado_actual' => $cita->estadoCita->estado_nombre,
+                    'usuario_id' => $user->usr_id,
+                ]);
+                return redirect()->route('my-appointments')->with('error', 'Solo se pueden rechazar citas pendientes.');
+            }
+        } elseif ($action === 'cancel') {
+            // Determinar si el usuario es un cliente o un profesional
+            if ($isClient = ($cita->cta_cliente_id === $user->usr_id)) {
+                // Cliente puede cancelar sus propias citas en estado 'Pendiente' o 'Confirmada'
+                if (!in_array($cita->estadoCita->estado_nombre, ['Pendiente', 'Confirmada'])) {
+                    Log::warning('Cliente intentó cancelar una cita que no está pendiente ni confirmada', [
+                        'cta_id' => $cita->cta_id,
+                        'estado_actual' => $cita->estadoCita->estado_nombre,
+                        'usuario_id' => $user->usr_id,
+                    ]);
+                    return redirect()->route('my-appointments')->with('error', 'Solo puedes cancelar citas pendientes o confirmadas.');
+                }
+            } elseif ($isWorker = in_array($user->role->rol_nombre, ['Administrador', 'Barbero', 'Facialista'])) {
+                // Profesionales pueden cancelar citas en estado 'Confirmada'
+                if ($cita->estadoCita->estado_nombre !== 'Confirmada') {
+                    Log::warning('Profesional intentó cancelar una cita que no está confirmada', [
+                        'cta_id' => $cita->cta_id,
+                        'estado_actual' => $cita->estadoCita->estado_nombre,
+                        'usuario_id' => $user->usr_id,
+                    ]);
+                    return redirect()->route('my-appointments')->with('error', 'Solo se pueden cancelar citas confirmadas.');
+                }
+            } else {
+                // Otros roles no autorizados
+                Log::warning('Usuario no autorizado para cancelar la cita', [
+                    'cta_id' => $cita->cta_id,
+                    'usuario_id' => $user->usr_id,
+                ]);
+                return redirect()->route('my-appointments')->with('error', 'No tienes permiso para cancelar esta cita.');
+            }
         }
     
         // Obtener el estado 'Cancelada'
@@ -358,15 +404,26 @@ class CitaController extends Controller
         $cita->cta_activa = false; // Desactivar la cita
         $cita->save();
     
-        Log::info('Cita rechazada y desactivada exitosamente', [
+        // Log de éxito
+        Log::info('Cita rechazada/cancelada y desactivada exitosamente', [
             'cta_id' => $cita->cta_id,
             'nuevo_estado' => 'Cancelada',
             'cta_activa' => $cita->cta_activa,
             'usuario_id' => $user->usr_id,
+            'action' => $action,
         ]);
     
-        return redirect()->route('my-appointments')->with('success', 'Cita rechazada y desactivada exitosamente.');
+        // Mensaje de éxito según la acción
+        if ($action === 'reject') {
+            return redirect()->route('my-appointments')->with('success', 'Cita rechazada y desactivada exitosamente.');
+        } elseif ($action === 'cancel') {
+            return redirect()->route('my-appointments')->with('success', 'Cita cancelada y desactivada exitosamente.');
+        }
     }
+    
+    
+    
+    
     
     
 }
