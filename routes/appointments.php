@@ -12,6 +12,10 @@ Route::middleware(['auth'])->prefix('citas')->name('appointments.')->group(funct
     Route::post('/{cita}/confirm-arrival', [ArrivalController::class, 'confirmArrival'])->name('confirmArrival');
     Route::get('/get-professionals/{service_id}', [UsuarioController::class, 'getProfessionals'])->name('getProfessionals');
     Route::get('/get-available-times', [AvailabilityController::class, 'getAvailableTimes'])->name('getAvailableTimes');
+
+    // Rutas para confirmar y rechazar citas
+    Route::post('/{cita}/confirm', [CitaController::class, 'confirm'])->name('confirm');
+    Route::post('/{cita}/reject', [CitaController::class, 'reject'])->name('reject');
 });
 
 // Rutas de "Mis Citas"

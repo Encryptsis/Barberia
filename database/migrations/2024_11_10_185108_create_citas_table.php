@@ -20,7 +20,8 @@ class CreateCitasTable extends Migration
             $table->date('cta_fecha');
             $table->time('cta_hora');
             $table->unsignedInteger('cta_estado_id')->default(1);
-            
+            $table->boolean('cta_activa')->default(true);
+
             // Nuevas columnas para puntualidad y penalizaciones
             $table->boolean('cta_arrival_confirmed')->default(false);
             $table->dateTime('cta_arrival_time')->nullable();

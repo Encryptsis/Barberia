@@ -26,6 +26,7 @@ class AvailabilityController extends Controller
             // Obtener citas existentes dentro del rango de fechas
             $existingAppointments = Cita::where('cta_profesional_id', $professionalId)
                 ->whereBetween('cta_fecha', [$startDate->toDateString(), $endDate->toDateString()])
+                ->where('cta_activa', true) // **Nueva condición añadida**
                 ->get();
 
             // Generar eventos

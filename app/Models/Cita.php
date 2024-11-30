@@ -23,6 +23,7 @@ class Cita extends Model
         'cta_fecha',
         'cta_hora',
         'cta_estado_id',
+        'cta_activa',
         'cta_arrival_confirmed',
         'cta_punctuality_status',
         'cta_arrival_time',
@@ -30,6 +31,14 @@ class Cita extends Model
         'cta_penalty_amount',
         'cta_is_free',
     ];
+
+    // En app/Models/Cita.php
+
+    public function getRouteKeyName()
+    {
+        return 'cta_id';
+    }
+
 
     public function cliente()
     {
