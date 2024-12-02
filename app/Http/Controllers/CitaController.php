@@ -176,20 +176,11 @@ class CitaController extends Controller
             }
     
             // Asignar el estado correcto
-            if ($useFreeAppointment) {
-                $estadoId = DB::table('estados_citas')->where('estado_nombre', 'Gratis')->value('estado_id');
-                Log::info('Estado "Gratis" obtenido:', ['estado_id' => $estadoId]);
-                if (!$estadoId) {
-                    Log::error('Estado "Gratis" no encontrado en estados_citas');
-                    return response()->json(['error' => 'Estado de cita gratuita no configurado correctamente.'], 500);
-                }
-            } else {
-                $estadoId = DB::table('estados_citas')->where('estado_nombre', 'Pendiente')->value('estado_id');
-                Log::info('Estado "Pendiente" obtenido:', ['estado_id' => $estadoId]);
-                if (!$estadoId) {
-                    Log::error('Estado "Pendiente" no encontrado en estados_citas');
-                    return response()->json(['error' => 'Estado de cita pendiente no configurado correctamente.'], 500);
-                }
+            $estadoId = DB::table('estados_citas')->where('estado_nombre', 'Pendiente')->value('estado_id');
+            Log::info('Estado "Pendiente" obtenido:', ['estado_id' => $estadoId]);
+            if (!$estadoId) {
+                Log::error('Estado "Pendiente" no encontrado en estados_citas');
+                return response()->json(['error' => 'Estado de cita pendiente no configurado correctamente.'], 500);
             }
     
             // Crear la cita
@@ -254,6 +245,10 @@ class CitaController extends Controller
     {
         // Obtener el usuario autenticado
         $user = Auth::user();
+
+        // Actualizar el saldo de puntos del usuario
+        $user->refresh();
+
     
         // Obtener el nombre del rol del usuario
         $role = $user->role->rol_nombre;
@@ -404,6 +399,35 @@ class CitaController extends Controller
         $cita->cta_activa = false; // Desactivar la cita
         $cita->save();
     
+        // Si la cita es gratuita, devolver los 100 puntos al cliente
+        if ($cita->cta_is_free) {
+            $cliente = $cita->cliente;
+            if ($cliente) {
+                // Devolver los 100 puntos
+                $cliente->usr_points += 100;
+                $cliente->save();
+    
+                // Registrar la transacción de puntos
+                PtsTransaction::create([
+                    'pts_usr_id' => $cliente->usr_id,
+                    'pts_type' => 'refund',
+                    'pts_amount' => 100,
+                    'pts_description' => 'Devolución por cita gratuita cancelada/rechazada',
+                    'pts_created_at' => now(),
+                ]);
+    
+                Log::info('Puntos devueltos al cliente por cita gratuita cancelada/rechazada', [
+                    'cta_id' => $cita->cta_id,
+                    'cliente_id' => $cliente->usr_id,
+                    'puntos_devueltos' => 100,
+                ]);
+            } else {
+                Log::warning('No se pudo encontrar al cliente para devolver los puntos', [
+                    'cta_id' => $cita->cta_id,
+                ]);
+            }
+        }
+    
         // Log de éxito
         Log::info('Cita rechazada/cancelada y desactivada exitosamente', [
             'cta_id' => $cita->cta_id,
@@ -420,6 +444,8 @@ class CitaController extends Controller
             return redirect()->route('my-appointments')->with('success', 'Cita cancelada y desactivada exitosamente.');
         }
     }
+    
+
     
     
     

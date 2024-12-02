@@ -9,6 +9,24 @@ class ServiciosSeeder extends Seeder
 {
     public function run()
     {
+        // Obtener las categorías existentes y mapear sus nombres a sus IDs
+        $categorias = DB::table('categorias_servicios')->pluck('cat_id', 'cat_nombre');
+
+        // Verificar que las categorías necesarias existen
+        $categoriasNecesarias = ['Barba', 'Cabello', 'Facial'];
+
+        foreach ($categoriasNecesarias as $categoriaNombre) {
+            if (!isset($categorias[$categoriaNombre])) {
+                throw new \Exception("La categoría '{$categoriaNombre}' no existe en la tabla 'categorias_servicios'. Asegúrate de que el seeder 'CategoriasServiciosSeeder' se haya ejecutado correctamente.");
+            }
+        }
+
+        // Asignar IDs de categorías a variables para facilitar la asignación
+        $barbaId = $categorias['Barba'];
+        $cabelloId = $categorias['Cabello'];
+        $facialId = $categorias['Facial'];
+
+        // Insertar los servicios con la asociación de categorías
         DB::table('servicios')->insert([
             [
                 'srv_nombre' => 'Hydrogen Oxigen',
@@ -17,6 +35,9 @@ class ServiciosSeeder extends Seeder
                 'srv_duracion' => '01:30:00',
                 'srv_disponible' => true,
                 'srv_imagen' => 'hydrogen_oxigen.jpg',
+                'srv_categoria_id' => $cabelloId, // Categoría: Cabello
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'srv_nombre' => 'Line Up',
@@ -25,6 +46,9 @@ class ServiciosSeeder extends Seeder
                 'srv_duracion' => '00:30:00',
                 'srv_disponible' => true,
                 'srv_imagen' => 'line_up.jpg',
+                'srv_categoria_id' => $barbaId, // Categoría: Barba
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'srv_nombre' => 'Facial',
@@ -33,6 +57,9 @@ class ServiciosSeeder extends Seeder
                 'srv_duracion' => '01:00:00',
                 'srv_disponible' => true,
                 'srv_imagen' => 'facial.jpg',
+                'srv_categoria_id' => $facialId, // Categoría: Facial
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'srv_nombre' => 'Wild Cut',
@@ -41,6 +68,9 @@ class ServiciosSeeder extends Seeder
                 'srv_duracion' => '01:15:00',
                 'srv_disponible' => true,
                 'srv_imagen' => 'wild_cut.jpg',
+                'srv_categoria_id' => $cabelloId, // Categoría: Cabello
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'srv_nombre' => 'Beer Grooming',
@@ -49,6 +79,9 @@ class ServiciosSeeder extends Seeder
                 'srv_duracion' => '00:45:00',
                 'srv_disponible' => true,
                 'srv_imagen' => 'beer_grooming.jpg',
+                'srv_categoria_id' => $barbaId, // Categoría: Barba
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'srv_nombre' => 'Full Cut',
@@ -57,6 +90,9 @@ class ServiciosSeeder extends Seeder
                 'srv_duracion' => '01:00:00',
                 'srv_disponible' => true,
                 'srv_imagen' => 'full_cut.jpg',
+                'srv_categoria_id' => $cabelloId, // Categoría: Cabello
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'srv_nombre' => 'Kids',
@@ -65,6 +101,9 @@ class ServiciosSeeder extends Seeder
                 'srv_duracion' => '00:30:00',
                 'srv_disponible' => true,
                 'srv_imagen' => 'kids.jpg',
+                'srv_categoria_id' => $cabelloId, // Categoría: Cabello
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'srv_nombre' => 'Classic Haircut',
@@ -73,6 +112,9 @@ class ServiciosSeeder extends Seeder
                 'srv_duracion' => '00:45:00',
                 'srv_disponible' => true,
                 'srv_imagen' => 'classic_haircut.jpg',
+                'srv_categoria_id' => $cabelloId, // Categoría: Cabello
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
         ]);
     }

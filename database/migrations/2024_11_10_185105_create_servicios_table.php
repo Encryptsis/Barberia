@@ -21,6 +21,14 @@ class CreateServiciosTable extends Migration
             $table->time('srv_duracion');
             $table->boolean('srv_disponible')->default(true);
             $table->string('srv_imagen', 255)->nullable();
+            $table->unsignedInteger('srv_categoria_id'); 
+
+            // Definir la clave foránea
+            $table->foreign('srv_categoria_id')
+            ->references('cat_id')
+            ->on('categorias_servicios')
+            ->onDelete('cascade');
+
             $table->index('srv_disponible', 'idx_srv_disponible');
             $table->timestamps();
         });
@@ -33,6 +41,10 @@ class CreateServiciosTable extends Migration
      */
     public function down()
     {
+        Schema::table('servicios', function (Blueprint $table) {
+            // Eliminar la clave foránea antes de eliminar la columna
+            $table->dropForeign(['srv_categoria_id']);
+        });
         Schema::dropIfExists('servicios');
     }
 }

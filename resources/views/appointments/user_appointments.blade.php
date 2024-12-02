@@ -117,23 +117,26 @@
                                     <td>{{ \Carbon\Carbon::parse($citaItem->cta_fecha)->format('d/m/Y') }}</td>
                                     <td>{{ \Carbon\Carbon::parse($citaItem->cta_hora)->format('H:i') }}</td>
                                     <td>
-                                        @if($citaItem->cta_is_free)
-                                            <span class="badge bg-info">Gratis</span>
-                                        @elseif($citaItem->estadoCita->estado_nombre == 'Confirmada')
+                                        @if($citaItem->estadoCita->estado_nombre == 'Confirmada')
                                             <span class="badge bg-success">{{ $citaItem->estadoCita->estado_nombre }}</span>
                                         @elseif($citaItem->estadoCita->estado_nombre == 'Pendiente')
                                             <span class="badge bg-warning">{{ $citaItem->estadoCita->estado_nombre }}</span>
+                                        @elseif($citaItem->estadoCita->estado_nombre == 'Cancelada')
+                                            <span class="badge bg-secondary">{{ $citaItem->estadoCita->estado_nombre }}</span>
                                         @else
                                             <span class="badge bg-secondary">{{ $citaItem->estadoCita->estado_nombre }}</span>
                                         @endif
                                     </td>
                                     
                                     <td>
-                                        <!-- Calcular el costo total sumando los precios de los servicios -->
-                                        @php
-                                            $totalCosto = $citaItem->servicios->sum('srv_precio');
-                                        @endphp
-                                        {{ number_format($totalCosto, 2) }} $
+                                        @if($citaItem->cta_is_free)
+                                            GRATIS
+                                        @else
+                                            @php
+                                                $totalCosto = $citaItem->servicios->sum('srv_precio');
+                                            @endphp
+                                            {{ number_format($totalCosto, 2) }} $
+                                        @endif
                                     </td>
                                     <td>
                                         @if($isWorker)
@@ -143,11 +146,11 @@
                                                     @csrf
                                                     <button type="submit" class="btn btn-sm btn-success">Confirmar</button>
                                                 </form>
-                                    
+                                            
                                                 <!-- Botón para Rechazar -->
                                                 <form action="{{ route('appointments.reject', $citaItem->cta_id) }}" method="POST" style="display:inline-block;">
                                                     @csrf
-                                                    <input type="hidden" name="action" value="reject"> <!-- Acción especificada -->
+                                                    <input type="hidden" name="action" value="reject">
                                                     <button type="submit" class="btn btn-sm btn-danger">Rechazar</button>
                                                 </form>
                                             @elseif($citaItem->estadoCita->estado_nombre == 'Confirmada')
@@ -157,7 +160,7 @@
                                                 <!-- Botón para Cancelar -->
                                                 <form action="{{ route('appointments.reject', $citaItem->cta_id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta cita?');" style="display:inline-block;">
                                                     @csrf
-                                                    <input type="hidden" name="action" value="cancel"> <!-- Acción especificada -->
+                                                    <input type="hidden" name="action" value="cancel">
                                                     <button type="submit" class="btn btn-sm btn-danger">Cancelar</button>
                                                 </form>
                                             @elseif($citaItem->estadoCita->estado_nombre == 'Cancelada')
@@ -166,24 +169,14 @@
                                                 <button type="button" class="btn btn-sm btn-danger" disabled title="Esta cita ha sido cancelada y no se puede cancelar nuevamente">Cancelar</button>
                                             @endif
                                         @else
-                                            @if($citaItem->estadoCita->estado_nombre == 'Pendiente')
-                                                <!-- Acciones para clientes con estado pendiente -->
+                                            @if($citaItem->estadoCita->estado_nombre == 'Pendiente' || $citaItem->estadoCita->estado_nombre == 'Confirmada')
+                                                <!-- Acciones para clientes con estado pendiente o confirmada -->
                                                 <a href="{{ route('citas.edit', $citaItem->cta_id) }}" class="btn btn-sm btn-warning">Editar</a>
                                                 
                                                 <!-- Botón para Cancelar -->
                                                 <form action="{{ route('appointments.reject', $citaItem->cta_id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta cita?');" style="display:inline-block;">
                                                     @csrf
-                                                    <input type="hidden" name="action" value="cancel"> <!-- Acción especificada -->
-                                                    <button type="submit" class="btn btn-sm btn-danger">Cancelar</button>
-                                                </form>
-                                            @elseif($citaItem->estadoCita->estado_nombre == 'Confirmada')
-                                                <!-- Acciones para clientes con estado confirmada -->
-                                                <a href="{{ route('citas.edit', $citaItem->cta_id) }}" class="btn btn-sm btn-warning">Editar</a>
-                                                
-                                                <!-- Botón para Cancelar -->
-                                                <form action="{{ route('appointments.reject', $citaItem->cta_id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta cita?');" style="display:inline-block;">
-                                                    @csrf
-                                                    <input type="hidden" name="action" value="cancel"> <!-- Acción especificada -->
+                                                    <input type="hidden" name="action" value="cancel">
                                                     <button type="submit" class="btn btn-sm btn-danger">Cancelar</button>
                                                 </form>
                                             @elseif($citaItem->estadoCita->estado_nombre == 'Cancelada')
@@ -194,12 +187,13 @@
                                         @endif
                                     </td>
                                     
-                                    
                                     <!-- Nueva Celda para Confirmar Llegada Solo para Trabajadores -->
                                     @if($isWorker)
                                         <td>
-                                            @if(!$citaItem->cta_arrival_confirmed && !$citaItem->cta_is_free && $citaItem->estadoCita->estado_nombre != 'Cancelada')
-
+                                            @if(
+                                                !$citaItem->cta_arrival_confirmed &&
+                                                $citaItem->estadoCita->estado_nombre == 'Confirmada'
+                                            )
                                                 <!-- Botón para Confirmar Llegó Temprano -->
                                                 <button 
                                                     class="btn btn-sm btn-success confirm-arrival" 
@@ -215,7 +209,7 @@
                                                     data-id="{{ $citaItem->cta_id }}" 
                                                     data-status="late"
                                                 >
-                                                    Llegó Tarde
+                                                    Llegó Tarde / No llegó
                                                 </button>
                                             @else
                                                 <!-- Mostrar estado de confirmación si ya fue confirmado -->
@@ -225,6 +219,9 @@
                                                     @elseif($citaItem->cta_punctuality_status == 'late')
                                                         <span class="badge bg-warning">Llegó Tarde</span>
                                                     @endif
+                                                @else
+                                                    <!-- Opcionalmente, puedes mostrar un mensaje o dejar el espacio en blanco -->
+                                                    <span class="text-muted">No disponible</span>
                                                 @endif
                                             @endif
                                         </td>
