@@ -1,5 +1,3 @@
-<!-- resources/views/user_appointments.blade.php -->
-
 @extends('layouts.app')
 
 @section('title', 'Mis Citas')
@@ -42,6 +40,44 @@
                     </div>
                 </div>
             @endif
+
+            <!-- Sección de Límites de Citas -->
+            <div class="mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <strong>Límites de Citas</strong>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Límite Global de Citas Activas:</strong> {{ $remainingGlobalAppointments }} de {{ $globalLimit->limite_diario }}</p>
+                        <ul>
+                            @foreach($categoryLimits as $limit)
+                                @php
+                                    $categoryName = $limit->categoria_servicio->cat_nombre;
+                                    $remaining = $remainingCategoryAppointments->get($limit->cat_id, 0);
+                                @endphp
+                                <li><strong>{{ $categoryName }}:</strong> {{ $remaining }} de {{ $limit->limite_diario }}</li>
+                            @endforeach
+                        </ul>
+                        @if($remainingGlobalAppointments <= 1)
+                            <div class="alert alert-warning mt-3">
+                                Estás cerca de alcanzar el límite global de citas activas.
+                            </div>
+                        @endif
+
+                        @foreach($categoryLimits as $limit)
+                            @php
+                                $categoryName = $limit->categoria_servicio->cat_nombre;
+                                $remaining = $remainingCategoryAppointments->get($limit->cat_id, 0);
+                            @endphp
+                            @if($remaining <= 1)
+                                <div class="alert alert-warning mt-2">
+                                    Te queda {{ $remaining }} cita para la categoría <strong>{{ $categoryName }}</strong>.
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+            </div>
 
             <!-- Mostrar mensajes de éxito o error -->
             @if(session('success'))
@@ -233,6 +269,10 @@
                 </div>
             @endif
 
+            <!-- Paginación -->
+            <div class="d-flex justify-content-center mt-4">
+                {{ $citas->links() }}
+            </div>
         </div>
     </section>
 @endsection
@@ -241,7 +281,7 @@
     <script>
         window.appointmentsData = {
             csrfToken: '{{ csrf_token() }}',
-            confirmArrivalUrl: '{{ route("appointments.confirmArrival", ':id') }}'
+            confirmArrivalUrl: '{{ route("appointments.confirmArrival", ":id") }}'
         };
     </script>
 

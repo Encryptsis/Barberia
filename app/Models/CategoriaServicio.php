@@ -10,6 +10,7 @@ class CategoriaServicio extends Model
     use HasFactory;
 
     protected $primaryKey = 'cat_id';
+    protected $table = 'categorias_servicios'; // Especifica el nombre correcto de la tabla
     public $timestamps = true;
 
     protected $fillable = [

@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             RolesTableSeeder::class,
             CategoriasServiciosSeeder::class,
             ServiciosSeeder::class,
+            AppointmentLimitsSeeder::class,
             TiposAccionSeeder::class,
             MetodosPagoSeeder::class,
             EstadosPagosSeeder::class,

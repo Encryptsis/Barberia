@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\Cita;
 use App\Models\Servicio;
+use App\Models\AppointmentLimit;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PtsTransaction;
 use Illuminate\Support\Facades\Log;
@@ -54,10 +55,50 @@ class CitaController extends Controller
         // Procesar la hora para asegurarse de que los minutos son '00'
         $horaConSegundos = $request->input('hora') . ':00';
     
+        // Obtener el nuevo servicio y su categoría
+        $nuevoServicio = Servicio::find($request->input('service'));
+        if (!$nuevoServicio) {
+            return redirect()->back()->with('error', 'Servicio no válido.');
+        }
+        $nuevaCategoriaId = $nuevoServicio->srv_categoria_id;
+    
+        // Obtener los límites globales y por categoría
+        $globalLimit = AppointmentLimit::whereNull('cat_id')->first();
+        $categoryLimit = AppointmentLimit::where('cat_id', $nuevaCategoriaId)->first();
+    
+        if (!$globalLimit || !$categoryLimit) {
+            return redirect()->back()->with('error', 'Límites de citas no configurados correctamente.');
+        }
+    
+        // Contar las citas activas globales del usuario excluyendo la cita actual
+        $activeGlobalAppointmentsCount = Cita::where('cta_cliente_id', $user->usr_id)
+            ->where('cta_activa', true)
+            ->where('cta_id', '!=', $cita->cta_id)
+            ->count();
+    
+        // Contar las citas activas por categoría del usuario excluyendo la cita actual
+        $activeCategoryAppointmentsCount = Cita::where('cta_cliente_id', $user->usr_id)
+            ->where('cta_activa', true)
+            ->where('cta_id', '!=', $cita->cta_id)
+            ->whereHas('servicios', function($query) use ($nuevaCategoriaId) {
+                $query->where('srv_categoria_id', $nuevaCategoriaId);
+            })
+            ->count();
+    
+        // Verificar si al actualizar la cita se exceden los límites
+        if ($activeGlobalAppointmentsCount >= $globalLimit->limite_diario) {
+            return redirect()->back()->with('error', 'Has alcanzado el límite máximo de citas activas.');
+        }
+    
+        if ($activeCategoryAppointmentsCount >= $categoryLimit->limite_diario) {
+            return redirect()->back()->with('error', 'Has alcanzado el límite de citas para este servicio.');
+        }
+    
         // Verificar si el intervalo está disponible (excepto para la cita actual)
         $existingAppointment = Cita::where('cta_profesional_id', $request->input('attendant'))
             ->where('cta_fecha', $request->input('fecha'))
             ->where('cta_hora', $horaConSegundos)
+            ->where('cta_activa', true)
             ->where('cta_id', '!=', $cita->cta_id)
             ->first();
     
@@ -78,47 +119,6 @@ class CitaController extends Controller
     
         return redirect()->route('my-appointments')->with('success', 'Cita actualizada exitosamente.');
     }
-
-    /*public function destroy(Cita $cita)
-    {
-        Log::info('Método destroy llamado', [
-            'cta_id' => $cita->cta_id,
-            'cta_activa' => $cita->cta_activa,
-            'usuario_id' => Auth::id(),
-        ]);
-    
-        $user = Auth::user();
-    
-        // Verificar si el usuario es el cliente o el profesional asignado
-        if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
-            Log::warning('Intento de cancelación no autorizado', [
-                'cta_id' => $cita->cta_id,
-                'usuario_id' => $user->usr_id,
-            ]);
-            return redirect()->route('my-appointments')->with('error', 'No tienes permiso para eliminar esta cita.');
-        }
-    
-        try {
-            $cita->cta_activa = false;
-            $cita->save();
-    
-            Log::info('Cita cancelada exitosamente', [
-                'cta_id' => $cita->cta_id,
-                'cta_activa' => $cita->cta_activa,
-                'usuario_id' => $user->usr_id,
-            ]);
-    
-            return redirect()->route('my-appointments')->with('success_delete', 'Cita cancelada exitosamente.');
-        } catch (\Exception $e) {
-            Log::error('Error al cancelar la cita', [
-                'cta_id' => $cita->cta_id,
-                'usuario_id' => $user->usr_id,
-                'mensaje' => $e->getMessage(),
-            ]);
-            return redirect()->route('my-appointments')->with('error', 'Ocurrió un error al cancelar esta cita. Por favor, inténtalo de nuevo.');
-        }
-    }
-    */
 
     public function saveAppointment(Request $request)
     {
@@ -163,11 +163,61 @@ class CitaController extends Controller
                 'use_free_appointment' => $useFreeAppointment,
             ]);
     
+            // Obtener la categoría del servicio seleccionado
+            $servicio = Servicio::find($serviceId);
+            if (!$servicio) {
+                Log::error('Servicio no encontrado:', ['service_id' => $serviceId]);
+                return response()->json(['error' => 'Servicio no válido.'], 400);
+            }
+            $categoriaId = $servicio->srv_categoria_id;
+    
+            // Obtener los límites globales y por categoría
+            $globalLimit = AppointmentLimit::whereNull('cat_id')->first();
+            $categoryLimit = AppointmentLimit::where('cat_id', $categoriaId)->first();
+    
+            if (!$globalLimit) {
+                Log::error('Límite global no configurado en appointment_limits');
+                return response()->json(['error' => 'Límite global de citas no configurado correctamente.'], 500);
+            }
+    
+            if (!$categoryLimit) {
+                Log::error('Límite por categoría no configurado en appointment_limits', ['cat_id' => $categoriaId]);
+                return response()->json(['error' => 'Límite de citas por categoría no configurado correctamente.'], 500);
+            }
+    
+            // Contar las citas activas globales del usuario
+            $activeGlobalAppointmentsCount = Cita::where('cta_cliente_id', $user->usr_id)
+                ->where('cta_activa', true)
+                ->count();
+    
+            // Contar las citas activas por categoría del usuario
+            $activeCategoryAppointmentsCount = Cita::where('cta_cliente_id', $user->usr_id)
+                ->where('cta_activa', true)
+                ->whereHas('servicios', function($query) use ($categoriaId) {
+                    $query->where('srv_categoria_id', $categoriaId);
+                })
+                ->count();
+    
+            Log::info('Citas activas globales del usuario:', ['count' => $activeGlobalAppointmentsCount]);
+            Log::info('Citas activas por categoría del usuario:', ['count' => $activeCategoryAppointmentsCount]);
+    
+            // Verificar si el usuario ha alcanzado el límite global
+            if ($activeGlobalAppointmentsCount >= $globalLimit->limite_diario) {
+                Log::info('Usuario ha alcanzado el límite global de citas activas');
+                return response()->json(['error' => 'Has alcanzado el límite máximo de citas activas.'], 429);
+            }
+    
+            // Verificar si el usuario ha alcanzado el límite por categoría
+            if ($activeCategoryAppointmentsCount >= $categoryLimit->limite_diario) {
+                Log::info('Usuario ha alcanzado el límite de citas para la categoría', ['cat_id' => $categoriaId]);
+                return response()->json(['error' => 'Has alcanzado el límite de citas para este servicio.'], 429);
+            }
+    
             // Verificar si el intervalo está disponible (solo citas activas)
             $existingAppointment = Cita::where('cta_profesional_id', $professionalId)
                 ->where('cta_fecha', $fecha)
                 ->where('cta_hora', $hora)
-                ->where('cta_activa', true) // **Añadido para considerar solo citas activas**
+                ->where('cta_activa', true)
                 ->first();
     
             if ($existingAppointment) {
@@ -205,6 +255,8 @@ class CitaController extends Controller
                 // Verificar si el usuario tiene suficientes puntos
                 if ($user->usr_points < 100) {
                     Log::warning('Usuario intenta canjear una cita gratuita sin suficientes puntos', ['user_id' => $user->usr_id]);
+                    // Opcional: Eliminar la cita creada si los puntos son insuficientes
+                    $cita->delete();
                     return response()->json(['error' => 'No tienes suficientes puntos para una cita gratuita.'], 400);
                 }
     
@@ -240,28 +292,28 @@ class CitaController extends Controller
         }
     }
     
-    
     public function miAgenda()
     {
         // Obtener el usuario autenticado
         $user = Auth::user();
-
+    
         // Actualizar el saldo de puntos del usuario
         $user->refresh();
-
     
         // Obtener el nombre del rol del usuario
         $role = $user->role->rol_nombre;
-
+    
         // Obtener los puntos del usuario
         $userPoints = $user->usr_points;
-        
+    
         // Definir los roles permitidos
         $allowedRoles = ['Administrador', 'Barbero', 'Facialista', 'Cliente'];  
-
+    
         // Determinar si el usuario es un trabajador o un cliente
         $isWorker = in_array($role, ['Administrador', 'Barbero', 'Facialista']);
-
+        $isClient = $role === 'Cliente';
+    
+        // Obtener las citas del usuario
         if ($isWorker) {
             // Obtener las citas donde el usuario es el profesional
             $citas = Cita::where('cta_profesional_id', $user->usr_id)
@@ -276,11 +328,50 @@ class CitaController extends Controller
                          ->paginate(10); // Paginación
         }
     
-        // Pasar variables adicionales a la vista si es necesario
-        return view('appointments.user_appointments', compact('citas', 'isWorker', 'role', 'userPoints'));
+        // Obtener los límites globales y por categoría
+        $globalLimit = AppointmentLimit::whereNull('cat_id')->first();
+        $categoryLimits = AppointmentLimit::whereNotNull('cat_id')->with('categoria_servicio')->get();
+    
+        // Contar las citas activas globales del usuario
+        $activeGlobalAppointmentsCount = Cita::where('cta_cliente_id', $user->usr_id)
+            ->where('cta_activa', true)
+            ->count();
+    
+        // Contar las citas activas por categoría del usuario
+        $activeCategoryAppointmentsCount = Cita::where('cta_cliente_id', $user->usr_id)
+            ->where('cta_activa', true)
+            ->whereHas('servicios', function($query) {
+                $query->whereNotNull('srv_categoria_id');
+            })
+            ->with(['servicios.categoria_servicio'])
+            ->get()
+            ->groupBy('servicios.categoria_servicio.cat_id')
+            ->map(function ($appointments, $catId) {
+                return $appointments->count();
+            });
+    
+        // Calcular los límites restantes
+        $remainingGlobalAppointments = $globalLimit ? ($globalLimit->limite_diario - $activeGlobalAppointmentsCount) : null;
+    
+        $remainingCategoryAppointments = $categoryLimits->map(function ($limit) use ($activeCategoryAppointmentsCount) {
+            $activeCount = $activeCategoryAppointmentsCount->get($limit->cat_id, 0);
+            return $limit->limite_diario - $activeCount;
+        });
+    
+        // Pasar variables adicionales a la vista
+        return view('appointments.user_appointments', compact(
+            'citas',
+            'isWorker',
+            'role',
+            'userPoints',
+            'globalLimit',
+            'remainingGlobalAppointments',
+            'categoryLimits',
+            'remainingCategoryAppointments'
+        ));
     }
+    
 
-    //NUEVOS AGREGADOS
     public function confirm(Cita $cita)
     {
         $user = Auth::user();
