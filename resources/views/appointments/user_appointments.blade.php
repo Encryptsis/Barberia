@@ -20,99 +20,73 @@
             <!-- Ajuste del Espaciado del Encabezado -->
             <h2 class="mt-5 mb-4 text-center">Mis Citas</h2>
 
+            <!-- Sección de Límites de Citas - Solo Visible para Clientes -->
             @if($isClient)
-                <!-- Sección de Puntos de Fidelidad -->
                 <div class="mb-4">
                     <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <strong>Límites de Citas</strong>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">Puntos de Fidelidad</h5>
-                            <p class="card-text">
-                                <strong>Saldo Actual:</strong> {{ $userPoints }} puntos
-                            </p>
-                            @if($userPoints >= 100)
-                                <div class="alert alert-info">
-                                    ¡Felicidades! Has acumulado {{ $userPoints }} puntos. Tienes derecho a un <strong>corte de cabello gratuito</strong>.
-                                </div>
+                            <!-- Límite Global de Citas Activas -->
+                            @if($globalLimit)
+                                <p>
+                                    <strong>Límite Global de Citas Activas:</strong> 
+                                    {{ $activeGlobalAppointmentsCount }} de {{ $globalLimit->limite_diario }}
+                                </p>
+                                
+                                @if($remainingGlobalAppointments <= 1 && $remainingGlobalAppointments > 0)
+                                    <div class="alert alert-warning mt-3" role="alert">
+                                        Estás cerca de alcanzar el límite global de citas activas.
+                                    </div>
+                                @elseif($remainingGlobalAppointments == 0)
+                                    <div class="alert alert-danger mt-3" role="alert">
+                                        Has alcanzado el límite global de citas activas.
+                                    </div>
+                                @endif
                             @else
-                                <p>Acumula 100 puntos para obtener un corte de cabello gratuito.</p>
+                                <p class="text-danger">No se ha configurado un límite global de citas.</p>
+                            @endif
+
+                            <!-- Lista de Límites por Categoría -->
+                            @if($categoryLimits->isNotEmpty())
+                                <ul class="list-group list-group-flush">
+                                    @foreach($categoryLimits as $catId => $limit)
+                                        @php
+                                            $categoryName = $limit->categoria_servicio->cat_nombre;
+                                            $active = $activeCategoryAppointmentsCount->get((int) $limit->cat_id, 0);
+                                            $remaining = $remainingCategoryAppointments->get((int) $limit->cat_id, 0);
+                                        @endphp
+                                        <li class="list-group-item">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong>{{ $categoryName }}:</strong> 
+                                                    {{ $active }} de {{ $limit->limite_diario }}
+                                                </div>
+                                               @if($remaining == 0)
+                                                    <span class="badge bg-danger text-white">Límite alcanzado</span>
+                                                @endif
+                                            </div>
+                                            
+                                            @if($remaining == 1 || $remaining == 2)
+                                                <div class="alert alert-warning mt-2 mb-0" role="alert">
+                                                    Te queda {{ $remaining }} cita para la categoría <strong>{{ $categoryName }}</strong>.
+                                                </div>
+                                            @elseif($remaining == 0)
+                                                <div class="alert alert-danger mt-2 mb-0" role="alert">
+                                                    Has alcanzado el límite de citas para la categoría <strong>{{ $categoryName }}</strong>.
+                                                </div>
+                                            @endif
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="text-muted">No hay límites de citas por categoría configurados.</p>
                             @endif
                         </div>
                     </div>
                 </div>
             @endif
-
-        <!-- Sección de Límites de Citas - Solo Visible para Clientes -->
-        @if($isClient)
-            <div class="mb-4">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <strong>Límites de Citas</strong>
-                    </div>
-                    <div class="card-body">
-                        <!-- Límite Global de Citas Activas -->
-                        @if($globalLimit)
-                            <p>
-                                <strong>Límite Global de Citas Activas:</strong> 
-                                {{ $activeGlobalAppointmentsCount }} de {{ $globalLimit->limite_diario }}
-                            </p>
-                            
-                            @if($remainingGlobalAppointments <= 1 && $remainingGlobalAppointments > 0)
-                                <div class="alert alert-warning mt-3" role="alert">
-                                    Estás cerca de alcanzar el límite global de citas activas.
-                                </div>
-                            @elseif($remainingGlobalAppointments == 0)
-                                <div class="alert alert-danger mt-3" role="alert">
-                                    Has alcanzado el límite global de citas activas.
-                                </div>
-                            @endif
-                        @else
-                            <p class="text-danger">No se ha configurado un límite global de citas.</p>
-                        @endif
-
-                        <!-- Lista de Límites por Categoría -->
-                        @if($categoryLimits->isNotEmpty())
-                            <ul class="list-group list-group-flush">
-                                @foreach($categoryLimits as $catId => $limit)
-                                    @php
-                                        $categoryName = $limit->categoria_servicio->cat_nombre;
-                                        $active = $activeCategoryAppointmentsCount->get((int) $limit->cat_id, 0);
-                                        $remaining = $remainingCategoryAppointments->get((int) $limit->cat_id, 0);
-                                    @endphp
-                                    <li class="list-group-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <strong>{{ $categoryName }}:</strong> 
-                                                {{ $active }} de {{ $limit->limite_diario }}
-                                            </div>
-                                            @if($remaining == 1)
-                                                <span class="badge bg-warning text-dark">Casi al límite</span>
-                                            @elseif($remaining == 0)
-                                                <span class="badge bg-danger text-white">Límite alcanzado</span>
-                                            @endif
-                                        </div>
-                                        
-                                        @if($remaining == 1 || $remaining == 2)
-                                            <div class="alert alert-warning mt-2 mb-0" role="alert">
-                                                Te queda {{ $remaining }} cita para la categoría <strong>{{ $categoryName }}</strong>.
-                                            </div>
-                                        @elseif($remaining == 0)
-                                            <div class="alert alert-danger mt-2 mb-0" role="alert">
-                                                Has alcanzado el límite de citas para la categoría <strong>{{ $categoryName }}</strong>.
-                                            </div>
-                                        @endif
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <p class="text-muted">No hay límites de citas por categoría configurados.</p>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        @endif
-
-
-
 
             <!-- Mostrar mensajes de éxito o error -->
             @if(session('success'))
@@ -225,17 +199,17 @@
                                                     <button type="submit" class="btn btn-sm btn-danger">Rechazar</button>
                                                 </form>
                                             @elseif($citaItem->estadoCita->estado_nombre == 'Confirmada')
-                                                        <!-- Verificar si la llegada ha sido confirmada -->
-                                                        @if($citaItem->cta_arrival_confirmed)
-                                                        <!-- Botón para Completar Cita -->
-                                                        <form action="{{ route('appointments.complete', $citaItem->cta_id) }}" method="POST" style="display:inline-block;">
-                                                            @csrf
-                                                            <button type="submit" class="btn btn-sm btn-primary">Completar Cita</button>
-                                                        </form>
-                                                    @else
-                                                        <!-- Mostrar un mensaje indicando que se debe confirmar la llegada -->
-                                                        <span class="text-muted">Confirma la llegada para completar</span>
-                                                    @endif
+                                                <!-- Verificar si la llegada ha sido confirmada -->
+                                                @if($citaItem->cta_arrival_confirmed)
+                                                    <!-- Botón para Completar Cita -->
+                                                    <form action="{{ route('appointments.complete', $citaItem->cta_id) }}" method="POST" style="display:inline-block;">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-sm btn-primary">Completar Cita</button>
+                                                    </form>
+                                                @else
+                                                    <!-- Mostrar un mensaje indicando que se debe confirmar la llegada -->
+                                                    <span class="text-muted">Confirma la llegada para completar</span>
+                                                @endif
                                                 <!-- Opciones para citas confirmadas -->
                                                 <a href="{{ route('citas.edit', $citaItem->cta_id) }}" class="btn btn-sm btn-warning">Editar</a>
                                                 
@@ -247,8 +221,7 @@
                                                 </form>
                                             @elseif($citaItem->estadoCita->estado_nombre == 'Cancelada')
                                                 <!-- Opciones para citas canceladas -->
-                                                <button type="button" class="btn btn-sm btn-warning" disabled title="Esta cita ha sido cancelada y no se puede editar">Editar</button>
-                                                <button type="button" class="btn btn-sm btn-danger" disabled title="Esta cita ha sido cancelada y no se puede cancelar nuevamente">Cancelar</button>
+                                                <!-- No se muestran botones -->
                                             @endif
                                         @else
                                             @if($citaItem->estadoCita->estado_nombre == 'Pendiente' || $citaItem->estadoCita->estado_nombre == 'Confirmada')
@@ -263,8 +236,7 @@
                                                 </form>
                                             @elseif($citaItem->estadoCita->estado_nombre == 'Cancelada')
                                                 <!-- Opciones para citas canceladas -->
-                                                <button type="button" class="btn btn-sm btn-warning" disabled title="Esta cita ha sido cancelada y no se puede editar">Editar</button>
-                                                <button type="button" class="btn btn-sm btn-danger" disabled title="Esta cita ha sido cancelada y no se puede cancelar nuevamente">Cancelar</button>
+                                                <!-- No se muestran botones -->
                                             @endif
                                         @endif
                                     </td>

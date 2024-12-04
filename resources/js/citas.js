@@ -349,7 +349,7 @@ $(document).ready(function() {
                 } else {
                     Swal.fire(
                         'Error',
-                        'Ocurrió un error al confirmar la reserva. Por favor, inténtalo de nuevo.',
+                        'Has alcanzado el límite máximo de citas para esta categoría. Por favor, cancela o edita una cita existente para liberar espacio y poder programar una nueva.',
                         'error'
                     );
                 }
