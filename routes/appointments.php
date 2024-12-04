@@ -16,6 +16,7 @@ Route::middleware(['auth'])->prefix('citas')->name('appointments.')->group(funct
     // Rutas para confirmar y rechazar citas
     Route::post('/{cita}/confirm', [CitaController::class, 'confirm'])->name('confirm');
     Route::post('/{cita}/reject', [CitaController::class, 'reject'])->name('reject');
+    Route::post('/citas/{cita}/complete', [CitaController::class, 'complete'])->name('complete');
 });
 
 // Rutas de "Mis Citas"

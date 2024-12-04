@@ -337,7 +337,7 @@ class CitaController extends Controller
             ->where('cta_activa', true)
             ->count();
     
-        // Contar las citas activas por categoría del usuario
+        // Contar las citas activas por categoría del usuario (contando servicios)
         $activeCategoryAppointmentsCount = Cita::where('cta_cliente_id', $user->usr_id)
             ->where('cta_activa', true)
             ->whereHas('servicios', function($query) {
@@ -345,18 +345,47 @@ class CitaController extends Controller
             })
             ->with(['servicios.categoria_servicio'])
             ->get()
-            ->groupBy('servicios.categoria_servicio.cat_id')
-            ->map(function ($appointments, $catId) {
-                return $appointments->count();
+            ->flatMap(function ($cita) {
+                return $cita->servicios;
+            })
+            ->groupBy(function ($servicio) {
+                return (int) ($servicio->categoria_servicio->cat_id ?? 0);
+            })
+            ->map(function ($servicios, $catId) {
+                return $servicios->count();
             });
     
-        // Calcular los límites restantes
-        $remainingGlobalAppointments = $globalLimit ? ($globalLimit->limite_diario - $activeGlobalAppointmentsCount) : null;
+        // Calcula las citas restantes globales, mínimo 0
+        $remainingGlobalAppointments = $globalLimit 
+            ? max($globalLimit->limite_diario - $activeGlobalAppointmentsCount, 0) 
+            : null;
     
-        $remainingCategoryAppointments = $categoryLimits->map(function ($limit) use ($activeCategoryAppointmentsCount) {
-            $activeCount = $activeCategoryAppointmentsCount->get($limit->cat_id, 0);
-            return $limit->limite_diario - $activeCount;
+        // Obtener los límites por categoría y keyBy cat_id
+        $categoryLimits = AppointmentLimit::whereNotNull('cat_id')
+            ->with('categoria_servicio')
+            ->get()
+            ->keyBy(function($item) {
+                return (int)$item->cat_id;
+            });
+
+        // Calcula las citas restantes por categoría y asegurar que las claves sean cat_id
+        $remainingCategoryAppointments = $categoryLimits->map(function ($limit, $catId) use ($activeCategoryAppointmentsCount) {
+            $activeCount = $activeCategoryAppointmentsCount->get((int) $catId, 0);
+            return max($limit->limite_diario - $activeCount, 0);
         });
+
+    
+        // Añadir logs para depuración
+        \Log::info('Usuario ID: ' . $user->usr_id);
+        \Log::info('Citas Globales Activas: ' . $activeGlobalAppointmentsCount);
+        \Log::info('Citas Restantes Globales: ' . $remainingGlobalAppointments);
+    
+        foreach ($categoryLimits as $limit) {
+            $categoryName = $limit->categoria_servicio->cat_nombre;
+            $active = $activeCategoryAppointmentsCount->get((int) $limit->cat_id, 0);
+            $remaining = $remainingCategoryAppointments->get((int) $limit->cat_id, 0);
+            \Log::info("Categoría: $categoryName | Activas: $active | Restantes: $remaining");
+        }
     
         // Pasar variables adicionales a la vista
         return view('appointments.user_appointments', compact(
@@ -366,11 +395,12 @@ class CitaController extends Controller
             'userPoints',
             'globalLimit',
             'remainingGlobalAppointments',
+            'activeGlobalAppointmentsCount', // Añadido
             'categoryLimits',
-            'remainingCategoryAppointments'
+            'remainingCategoryAppointments',
+            'activeCategoryAppointmentsCount' // Añadido
         ));
     }
-    
 
     public function confirm(Cita $cita)
     {
@@ -535,12 +565,48 @@ class CitaController extends Controller
             return redirect()->route('my-appointments')->with('success', 'Cita cancelada y desactivada exitosamente.');
         }
     }
-    
 
-    
-    
-    
-    
-    
+    // En app/Http/Controllers/CitaController.php
+
+    public function complete(Request $request, Cita $cita)
+    {
+        $user = Auth::user();
+
+        // Verificar que el usuario tiene uno de los roles autorizados
+        $allowedRoles = ['Administrador', 'Barbero', 'Facialista'];
+        if (!in_array($user->role->rol_nombre, $allowedRoles)) {
+            return redirect()->route('my-appointments')->with('error', 'No tienes permiso para completar esta cita.');
+        }
+
+        // Verificar que la cita está en estado 'Confirmada'
+        if ($cita->estadoCita->estado_nombre !== 'Confirmada') {
+            return redirect()->route('my-appointments')->with('error', 'Solo se pueden completar citas confirmadas.');
+        }
+
+        // Verificar que la llegada del cliente ha sido confirmada
+        if (!$cita->cta_arrival_confirmed) {
+            return redirect()->route('my-appointments')->with('error', 'No puedes completar una cita sin confirmar la llegada del cliente.');
+        }
+
+        // Obtener el estado 'Completada'
+        $estadoCompletada = DB::table('estados_citas')->where('estado_nombre', 'Completada')->value('estado_id');
+
+        if (!$estadoCompletada) {
+            return redirect()->route('my-appointments')->with('error', 'Estado "Completada" no configurado correctamente.');
+        }
+
+        // Actualizar el estado de la cita y desactivarla
+        $cita->cta_estado_id = $estadoCompletada;
+        $cita->cta_activa = false;
+        $cita->save();
+
+        // Opcional: Registrar en el log
+        Log::info('Cita completada', [
+            'cta_id' => $cita->cta_id,
+            'usuario_id' => $user->usr_id,
+        ]);
+
+        return redirect()->route('my-appointments')->with('success', 'Cita completada exitosamente.');
+    }
     
 }

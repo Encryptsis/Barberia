@@ -20,7 +20,6 @@ body {
     /* Eliminamos la definición directa del background-image */
 }
 
-
 .secciones {
     min-height: calc(100vh - 70px);
     height: auto;
