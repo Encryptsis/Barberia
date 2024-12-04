@@ -41,74 +41,75 @@
                 </div>
             @endif
 
-    <!-- Sección de Límites de Citas -->
-    <div class="mb-4">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <strong>Límites de Citas</strong>
-            </div>
-            <div class="card-body">
-                <!-- Límite Global de Citas Activas -->
-                @if($globalLimit)
-                    <p>
-                        <strong>Límite Global de Citas Activas:</strong> 
-                        {{ $activeGlobalAppointmentsCount }} de {{ $globalLimit->limite_diario }}
-                    </p>
-                    
-                    @if($remainingGlobalAppointments <= 1 && $remainingGlobalAppointments > 0)
-                        <div class="alert alert-warning mt-3" role="alert">
-                            Estás cerca de alcanzar el límite global de citas activas.
-                        </div>
-                    @elseif($remainingGlobalAppointments == 0)
-                        <div class="alert alert-danger mt-3" role="alert">
-                            Has alcanzado el límite global de citas activas.
-                        </div>
-                    @endif
-                @else
-                    <p class="text-danger">No se ha configurado un límite global de citas.</p>
-                @endif
-
-                <!-- Lista de Límites por Categoría -->
-                @if($categoryLimits->isNotEmpty())
-                    <ul class="list-group list-group-flush">
-                        @foreach($categoryLimits as $catId => $limit)
-                            @php
-                                $categoryName = $limit->categoria_servicio->cat_nombre;
-                                $active = $activeCategoryAppointmentsCount->get((int) $limit->cat_id, 0);
-                                $remaining = $remainingCategoryAppointments->get((int) $limit->cat_id, 0);
-                            @endphp
-                            <li class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>{{ $categoryName }}:</strong> 
-                                        {{ $active }} de {{ $limit->limite_diario }}
-                                    </div>
-                                    @if($remaining == 1)
-                                        <span class="badge bg-warning text-dark">Casi al límite</span>
-                                    @elseif($remaining == 0)
-                                        <span class="badge bg-danger text-white">Límite alcanzado</span>
-                                    @endif
+        <!-- Sección de Límites de Citas - Solo Visible para Clientes -->
+        @if($isClient)
+            <div class="mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <strong>Límites de Citas</strong>
+                    </div>
+                    <div class="card-body">
+                        <!-- Límite Global de Citas Activas -->
+                        @if($globalLimit)
+                            <p>
+                                <strong>Límite Global de Citas Activas:</strong> 
+                                {{ $activeGlobalAppointmentsCount }} de {{ $globalLimit->limite_diario }}
+                            </p>
+                            
+                            @if($remainingGlobalAppointments <= 1 && $remainingGlobalAppointments > 0)
+                                <div class="alert alert-warning mt-3" role="alert">
+                                    Estás cerca de alcanzar el límite global de citas activas.
                                 </div>
-                                
-                                @if($remaining == 1 || $remaining == 2)
-                                    <div class="alert alert-warning mt-2 mb-0" role="alert">
-                                        Te queda {{ $remaining }} cita para la categoría <strong>{{ $categoryName }}</strong>.
-                                    </div>
-                                @elseif($remaining == 0)
-                                    <div class="alert alert-danger mt-2 mb-0" role="alert">
-                                        Has alcanzado el límite de citas para la categoría <strong>{{ $categoryName }}</strong>.
-                                    </div>
-                                @endif
-                            </li>
-                        @endforeach
-                    </ul>
-                @else
-                    <p class="text-muted">No hay límites de citas por categoría configurados.</p>
-                @endif
-            </div>
-        </div>
-    </div>
+                            @elseif($remainingGlobalAppointments == 0)
+                                <div class="alert alert-danger mt-3" role="alert">
+                                    Has alcanzado el límite global de citas activas.
+                                </div>
+                            @endif
+                        @else
+                            <p class="text-danger">No se ha configurado un límite global de citas.</p>
+                        @endif
 
+                        <!-- Lista de Límites por Categoría -->
+                        @if($categoryLimits->isNotEmpty())
+                            <ul class="list-group list-group-flush">
+                                @foreach($categoryLimits as $catId => $limit)
+                                    @php
+                                        $categoryName = $limit->categoria_servicio->cat_nombre;
+                                        $active = $activeCategoryAppointmentsCount->get((int) $limit->cat_id, 0);
+                                        $remaining = $remainingCategoryAppointments->get((int) $limit->cat_id, 0);
+                                    @endphp
+                                    <li class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>{{ $categoryName }}:</strong> 
+                                                {{ $active }} de {{ $limit->limite_diario }}
+                                            </div>
+                                            @if($remaining == 1)
+                                                <span class="badge bg-warning text-dark">Casi al límite</span>
+                                            @elseif($remaining == 0)
+                                                <span class="badge bg-danger text-white">Límite alcanzado</span>
+                                            @endif
+                                        </div>
+                                        
+                                        @if($remaining == 1 || $remaining == 2)
+                                            <div class="alert alert-warning mt-2 mb-0" role="alert">
+                                                Te queda {{ $remaining }} cita para la categoría <strong>{{ $categoryName }}</strong>.
+                                            </div>
+                                        @elseif($remaining == 0)
+                                            <div class="alert alert-danger mt-2 mb-0" role="alert">
+                                                Has alcanzado el límite de citas para la categoría <strong>{{ $categoryName }}</strong>.
+                                            </div>
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="text-muted">No hay límites de citas por categoría configurados.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
 
 
 

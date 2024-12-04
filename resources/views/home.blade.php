@@ -14,34 +14,34 @@
     </div>
 </div>
 
-<img src="{{ Vite::asset('resources/images/wildbeer_barbershp_bar.jpeg') }}" alt="barber" class="hero-image"/>
+<img src="{{ Vite::asset('resources/images/prueba1.jpeg') }}" alt="barber" class="hero-image"/>
 <section class="secciones">
-    <h2 class="titulo-secciones"><i class="bi bi-file-person-fill"></i> THE DEER TEAM</h2>
+    <h2 class="titulo-secciones"><i class="bi bi-file-person-fill"></i> THE TEAM</h2>
     <div class="partes">
         <section class="slider-container">
             <div class="slider-images">
                 <div class="slider-img">
-                    <img src="{{ Vite::asset('resources/images/faciales.jpg') }}" alt="2" />
+                    <img src="{{ Vite::asset('resources/images/prueba4.jpg') }}" alt="2" />
                     <div class="overlay"></div>
                     <h1 class="car">FACIAL</h1>
                     <div class="details">
-                        <h2 class="car2">PAOLA</h2>
+                        <h2 class="car2">LOREM</h2>
                         <p class="car3">Avant-garde Style</p>
                     </div>
                 </div>
     
                 <div class="slider-img active">
-                    <img src="{{ Vite::asset('resources/images/MichaelAguilar.jpeg') }}" alt="2" />
+                    <img src="{{ Vite::asset('resources/images/prueba2.jpg') }}" alt="2" />
                     <div class="overlay"></div>
                     <h1 class="car">PRESICION</h1>
                     <div class="details">
-                        <h2 class="car2">MICHAEL AGUILAR</h2>
+                        <h2 class="car2">BARBER</h2>
                         <p class="car3">Master Touch</p>
                     </div>
                 </div>
     
                 <div class="slider-img">
-                    <img src="{{ Vite::asset('resources/images/baber3.jpeg') }}" alt="3" />
+                    <img src="{{ Vite::asset('resources/images/prueba3.jpg') }}" alt="3" />
                     <div class="overlay"></div>
                     <h1 class="car">CREATIVITY</h1>
                     <div class="details">
@@ -158,7 +158,7 @@
 <section class="secciones">
     <h2 class="titulo-secciones"><i class="bi bi-scissors"></i> OUR WORKSPACE</h2>
     <div class="partes">
-        <img src="{{ Vite::asset('resources/images/workspace.jpg') }}" alt="workspace" class="hero-image"/>
+        <img src="{{ Vite::asset('resources/images/prueba5.jpg') }}" alt="workspace" class="hero-image"/>
     </div>
     </section>
 
@@ -181,12 +181,12 @@
                 <div class="info info-1">
                     <h2>OUR LOCATIONS</h2>
                     <hr>
-                    <p>7111 NW 86th St, Kansas City, 64153</p>
+                    <p>1234 NW 12th St, City City, 12345</p>
                     <hr>
                     <h2>WE´RE OPEN FROM MONDAY TO FRIDAY</h2>
                     <hr>
-                    <p>Contact By Email: wilddeer@gmail.com</p>
-                    <p>Contact By Cell Number: 434-000-0000</p>
+                    <p>Contact By Email: email@example.com</p>
+                    <p>Contact By Cell Number: 123-321-1234</p>
                 </div>
                 <div class="info info-2">
                     <img src="{{ Vite::asset('resources/images/slogan_imagen.jpg') }}" alt="slogan" class="hero-image"/>
