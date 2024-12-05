@@ -5,6 +5,8 @@ use App\Http\Controllers\CitaController;
 use App\Http\Controllers\ArrivalController;
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\ClienteController;
+
 
 // Rutas de Citas (Appointments)
 Route::middleware(['auth'])->prefix('citas')->name('appointments.')->group(function () {
@@ -25,6 +27,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/appointments/{cita}/edit', [CitaController::class, 'edit'])->name('citas.edit');
     Route::put('/appointments/{cita}', [CitaController::class, 'update'])->name('citas.update');
     Route::delete('/appointments/{cita}', [CitaController::class, 'destroy'])->name('citas.destroy');
+
+
+    Route::get('/informacion/{id}', [ClienteController::class, 'show'])->name('informacion.show');
 });
 
 // Ruta para Agendar una cita de parte del cliente

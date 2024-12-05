@@ -143,7 +143,9 @@
                                     @if($isWorker)
                                         <td>
                                             @if($citaItem->cliente)
-                                                {{ $citaItem->cliente->usr_nombre_completo }}
+                                                <a href="{{ route('informacion.show', $citaItem->cliente->usr_id) }}">
+                                                    {{ $citaItem->cliente->usr_nombre_completo }}
+                                                </a>
                                             @else
                                                 <span class="badge bg-secondary">Sin Cliente</span>
                                             @endif
