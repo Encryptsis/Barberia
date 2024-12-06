@@ -227,10 +227,29 @@
                                             @endif
                                         @else
                                             @if($citaItem->estadoCita->estado_nombre == 'Pendiente' || $citaItem->estadoCita->estado_nombre == 'Confirmada')
-                                                <!-- Acciones para clientes con estado pendiente o confirmada -->
-                                                <a href="{{ route('citas.edit', $citaItem->cta_id) }}" class="btn btn-sm btn-warning">Editar</a>
-                                                
-                                                <!-- Botón para Cancelar -->
+                                            
+                                            @php
+                                            $appointmentDateTime = \Carbon\Carbon::parse($citaItem->cta_fecha . ' ' . $citaItem->cta_hora);
+                                            $now = \Carbon\Carbon::now();
+                                            $diffInHours = $now->floatDiffInHours($appointmentDateTime, false);
+                                        @endphp
+    
+                                        
+                                        @if($diffInHours > 3)
+                                            <!-- Mostrar botón Editar habilitado -->
+                                            <a href="{{ route('citas.edit', $citaItem->cta_id) }}" class="btn btn-sm btn-warning">Editar</a>
+                                        @else
+                                            <!-- Mostrar botón Editar deshabilitado con tooltip explicativo -->
+                                            <button 
+                                                class="btn btn-sm btn-warning" 
+                                                disabled 
+                                                title="No puedes editar la cita a menos de 3 horas de su inicio"
+                                            >
+                                                Editar
+                                            </button>
+                                        @endif        
+
+                                                <!-- Botón para Cancelar siempre visible -->
                                                 <form action="{{ route('appointments.reject', $citaItem->cta_id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta cita?');" style="display:inline-block;">
                                                     @csrf
                                                     <input type="hidden" name="action" value="cancel">

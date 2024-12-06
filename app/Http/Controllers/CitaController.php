@@ -10,6 +10,7 @@ use App\Models\AppointmentLimit;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PtsTransaction;
 use Illuminate\Support\Facades\Log;
+use \Carbon\Carbon;
 
 //Manejará las operaciones CRUD básicas de las citas, así como la creación de nuevas citas y la visualización de la agenda.
 class CitaController extends Controller
@@ -17,31 +18,58 @@ class CitaController extends Controller
     public function edit(Cita $cita)
     {
         $user = Auth::user();
-    
-        // Verificar si el usuario es el cliente o el profesional asignado
-        if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
-            return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para editar esta cita.');
+
+    // Verificar si el usuario es el cliente o el profesional asignado
+    if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
+        return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para editar esta cita.');
+    }
+
+    // Si el usuario es un cliente, verificar si faltan menos de 3 horas para la cita
+    if ($user->role->rol_nombre === 'Cliente') {
+        $appointmentDateTime = Carbon::parse($cita->cta_fecha . ' ' . $cita->cta_hora);
+        $now = Carbon::now();
+        $diffInHours = $now->floatDiffInHours($appointmentDateTime, false);
+
+        if ($diffInHours <= 3) {
+            
+            return redirect()->route('mi.agenda')->with('error', 'No puedes editar la cita a menos de 3 horas de su inicio.');
         }
-    
+    }
+
         // Obtener todos los servicios para el dropdown
         $servicios = Servicio::all();
-    
+
         // Obtener los profesionales asociados al servicio actual de la cita
         $servicioActual = $cita->servicios->first();
         $profesionales = $servicioActual ? $servicioActual->usuarios()->get() : collect();
-    
+
         return view('appointments.user_appointments_edit', compact('cita', 'servicios', 'profesionales'));
     }
+
+    
+    
 
     public function update(Request $request, Cita $cita)
     {
         $user = Auth::user();
-    
-        // Verificar si el usuario es el cliente o el profesional asignado
-        if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
-            return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para actualizar esta cita.');
-        }
-    
+
+    // Verificar si el usuario es el cliente o el profesional asignado
+    if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
+        return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para actualizar esta cita.');
+    }
+
+     // Si el usuario es un cliente, verificar si faltan menos de 3 horas para la cita
+// Si el usuario es un cliente, verificar si faltan menos de 3 horas para la cita
+if ($user->role->rol_nombre === 'Cliente') {
+    $appointmentDateTime = Carbon::parse($cita->cta_fecha . ' ' . $cita->cta_hora);
+    $now = Carbon::now();
+    $diffInHours = $now->floatDiffInHours($appointmentDateTime, false);
+
+    if ($diffInHours <= 3) {
+        return redirect()->route('mi.agenda')->with('error', 'No puedes editar la cita a menos de 3 horas de su inicio.');
+    }
+}
+
         // Validar los datos del formulario
         $request->validate([
             'service'   => 'required|integer|exists:servicios,srv_id',
