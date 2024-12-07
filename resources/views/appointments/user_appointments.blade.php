@@ -221,6 +221,9 @@
                                                     <input type="hidden" name="action" value="cancel">
                                                     <button type="submit" class="btn btn-sm btn-danger">Cancelar</button>
                                                 </form>
+                                                @elseif($citaItem->estadoCita->estado_nombre == 'Expirada')
+                                                    <!-- Cita expirada: no mostrar botones -->
+                                                    <span class="text-muted">Cita expirada</span>
                                             @elseif($citaItem->estadoCita->estado_nombre == 'Cancelada')
                                                 <!-- Opciones para citas canceladas -->
                                                 <!-- No se muestran botones -->

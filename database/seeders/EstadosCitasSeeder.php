@@ -39,6 +39,12 @@ class EstadosCitasSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'estado_nombre' => 'Expirada',
+                'estado_descripcion' => 'La cita ha expirado sin ser confirmada ni completada.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

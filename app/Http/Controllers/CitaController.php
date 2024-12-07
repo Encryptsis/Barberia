@@ -19,22 +19,22 @@ class CitaController extends Controller
     {
         $user = Auth::user();
 
-    // Verificar si el usuario es el cliente o el profesional asignado
-    if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
-        return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para editar esta cita.');
-    }
-
-    // Si el usuario es un cliente, verificar si faltan menos de 3 horas para la cita
-    if ($user->role->rol_nombre === 'Cliente') {
-        $appointmentDateTime = Carbon::parse($cita->cta_fecha . ' ' . $cita->cta_hora);
-        $now = Carbon::now();
-        $diffInHours = $now->floatDiffInHours($appointmentDateTime, false);
-
-        if ($diffInHours <= 3) {
-            
-            return redirect()->route('mi.agenda')->with('error', 'No puedes editar la cita a menos de 3 horas de su inicio.');
+        // Verificar si el usuario es el cliente o el profesional asignado
+        if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
+            return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para editar esta cita.');
         }
-    }
+
+        // Si el usuario es un cliente, verificar si faltan menos de 3 horas para la cita
+        if ($user->role->rol_nombre === 'Cliente') {
+            $appointmentDateTime = Carbon::parse($cita->cta_fecha . ' ' . $cita->cta_hora);
+            $now = Carbon::now();
+            $diffInHours = $now->floatDiffInHours($appointmentDateTime, false);
+
+            if ($diffInHours <= 3) {
+                
+                return redirect()->route('mi.agenda')->with('error', 'No puedes editar la cita a menos de 3 horas de su inicio.');
+            }
+        }
 
         // Obtener todos los servicios para el dropdown
         $servicios = Servicio::all();
@@ -46,29 +46,26 @@ class CitaController extends Controller
         return view('appointments.user_appointments_edit', compact('cita', 'servicios', 'profesionales'));
     }
 
-    
-    
-
     public function update(Request $request, Cita $cita)
     {
         $user = Auth::user();
 
-    // Verificar si el usuario es el cliente o el profesional asignado
-    if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
-        return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para actualizar esta cita.');
-    }
+        // Verificar si el usuario es el cliente o el profesional asignado
+        if ($cita->cta_cliente_id !== $user->usr_id && $cita->cta_profesional_id !== $user->usr_id) {
+            return redirect()->route('mi.agenda')->with('error', 'No tienes permiso para actualizar esta cita.');
+        }
 
      // Si el usuario es un cliente, verificar si faltan menos de 3 horas para la cita
-// Si el usuario es un cliente, verificar si faltan menos de 3 horas para la cita
-if ($user->role->rol_nombre === 'Cliente') {
-    $appointmentDateTime = Carbon::parse($cita->cta_fecha . ' ' . $cita->cta_hora);
-    $now = Carbon::now();
-    $diffInHours = $now->floatDiffInHours($appointmentDateTime, false);
+        // Si el usuario es un cliente, verificar si faltan menos de 3 horas para la cita
+        if ($user->role->rol_nombre === 'Cliente') {
+            $appointmentDateTime = Carbon::parse($cita->cta_fecha . ' ' . $cita->cta_hora);
+            $now = Carbon::now();
+            $diffInHours = $now->floatDiffInHours($appointmentDateTime, false);
 
-    if ($diffInHours <= 3) {
-        return redirect()->route('mi.agenda')->with('error', 'No puedes editar la cita a menos de 3 horas de su inicio.');
-    }
-}
+        if ($diffInHours <= 3) {
+            return redirect()->route('mi.agenda')->with('error', 'No puedes editar la cita a menos de 3 horas de su inicio.');
+        }
+        }
 
         // Validar los datos del formulario
         $request->validate([
@@ -138,8 +135,16 @@ if ($user->role->rol_nombre === 'Cliente') {
         $cita->cta_profesional_id = $request->input('attendant');
         $cita->cta_fecha = $request->input('fecha');
         $cita->cta_hora = $horaConSegundos;
-        // Actualizar otros campos si es necesario
-    
+        
+        // Obtener el estado "Pendiente"
+        $estadoPendiente = DB::table('estados_citas')->where('estado_nombre', 'Pendiente')->value('estado_id');
+        if (!$estadoPendiente) {
+            return redirect()->back()->with('error', 'Estado "Pendiente" no configurado correctamente.');
+        }
+        
+        // Cambiar el estado a Pendiente
+        $cita->cta_estado_id = $estadoPendiente;
+
         $cita->save();
     
         // Actualizar los servicios asociados
@@ -355,7 +360,40 @@ if ($user->role->rol_nombre === 'Cliente') {
                          ->orderBy('cta_fecha', 'desc')
                          ->paginate(10); // Paginación
         }
-    
+
+        $estadoExpirada = DB::table('estados_citas')->where('estado_nombre', 'Expirada')->value('estado_id');
+
+            // Actualizar las citas expiradas
+    foreach ($citas as $cita) {
+        if ($cita->cta_activa && 
+            !in_array($cita->estadoCita->estado_nombre, ['Cancelada','Completada','Expirada'])) {
+            
+            // Verificar si la cita ya pasó
+            $appointmentTime = Carbon::parse($cita->cta_fecha . ' ' . $cita->cta_hora);
+            $now = Carbon::now();
+
+            if ($now->greaterThan($appointmentTime)) {
+                // La cita ya pasó y no está cancelada ni completada
+                // Cambiamos a estado Expirada y desactivamos
+                $cita->cta_estado_id = $estadoExpirada;
+                $cita->cta_activa = false;
+                $cita->save();
+            }
+        }
+    }
+        // Recalcular citas luego de actualizar las expiradas (opcional)
+    // Si quieres ver los cambios en la misma carga puedes volver a cargar las citas:
+    if ($isWorker) {
+        $citas = Cita::where('cta_profesional_id', $user->usr_id)
+                     ->with(['cliente', 'servicios', 'estadoCita'])
+                     ->orderBy('cta_fecha', 'desc')
+                     ->paginate(10);
+    } else {
+        $citas = Cita::where('cta_cliente_id', $user->usr_id)
+                     ->with(['profesional', 'servicios', 'estadoCita'])
+                     ->orderBy('cta_fecha', 'desc')
+                     ->paginate(10);
+    }
         // Obtener los límites globales y por categoría
         $globalLimit = AppointmentLimit::whereNull('cat_id')->first();
         $categoryLimits = AppointmentLimit::whereNotNull('cat_id')->with('categoria_servicio')->get();
