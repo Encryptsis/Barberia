@@ -88,6 +88,102 @@
                 </div>
             @endif
 
+            <!-- Formulario de Filtros -->
+            <div class="mb-4">
+                <form method="GET" action="{{ route('my-appointments') }}">
+                    <div class="row mb-3">
+                        <!-- Filtro de Estado (Múltiple) -->
+                        <div class="col-md-3">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select name="estado[]" id="estado" class="form-select" multiple>
+                                @foreach($estados as $estado)
+                                    <option value="{{ $estado->estado_id }}" 
+                                        {{ in_array($estado->estado_id, request('estado', [])) ? 'selected' : '' }}>
+                                        {{ $estado->estado_nombre }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Filtro de Fecha (Exacta) -->
+                        <div class="col-md-3">
+                            <label for="fecha" class="form-label">Fecha (exacta)</label>
+                            <input type="date" name="fecha" id="fecha" class="form-control" value="{{ request('fecha') }}">
+                        </div>
+
+                        <!-- Filtro de Servicio -->
+                        <div class="col-md-3">
+                            <label for="servicio_id" class="form-label">Servicio</label>
+                            <select name="servicio_id" id="servicio_id" class="form-select">
+                                <option value="">Todos</option>
+                                @foreach($servicios as $servicio)
+                                    <option value="{{ $servicio->srv_id }}" 
+                                        {{ request('servicio_id') == $servicio->srv_id ? 'selected' : '' }}>
+                                        {{ $servicio->srv_nombre }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Filtro de Cliente o Profesional -->
+                        @if($isWorker)
+                            <div class="col-md-3">
+                                <label for="cliente_id" class="form-label">Cliente</label>
+                                <select name="cliente_id" id="cliente_id" class="form-select">
+                                    <option value="">Todos</option>
+                                    @foreach($clientes as $cliente)
+                                        <option value="{{ $cliente->usr_id }}" 
+                                            {{ request('cliente_id') == $cliente->usr_id ? 'selected' : '' }}>
+                                            {{ $cliente->usr_nombre_completo }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @else
+                            <div class="col-md-3">
+                                <label for="profesional_id" class="form-label">Profesional</label>
+                                <select name="profesional_id" id="profesional_id" class="form-select">
+                                    <option value="">Todos</option>
+                                    @foreach($profesionales as $profesional)
+                                        <option value="{{ $profesional->usr_id }}" 
+                                            {{ request('profesional_id') == $profesional->usr_id ? 'selected' : '' }}>
+                                            {{ $profesional->usr_nombre_completo }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="row mb-3">
+                        <!-- Ordenar por -->
+                        <div class="col-md-3">
+                            <label for="sort_by" class="form-label">Ordenar por</label>
+                            <select name="sort_by" id="sort_by" class="form-select">
+                                <option value="cta_fecha" {{ request('sort_by') == 'cta_fecha' ? 'selected' : '' }}>Fecha</option>
+                                <option value="estado" {{ request('sort_by') == 'estado' ? 'selected' : '' }}>Estado</option>
+                                <option value="costo" {{ request('sort_by') == 'costo' ? 'selected' : '' }}>Costo</option>
+                            </select>
+                        </div>
+
+                        <!-- Dirección de Ordenamiento -->
+                        <div class="col-md-3">
+                            <label for="sort_dir" class="form-label">Dirección</label>
+                            <select name="sort_dir" id="sort_dir" class="form-select">
+                                <option value="asc" {{ request('sort_dir', 'asc') == 'asc' ? 'selected' : '' }}>Ascendente</option>
+                                <option value="desc" {{ request('sort_dir') == 'desc' ? 'selected' : '' }}>Descendente</option>
+                            </select>
+                        </div>
+
+                        <!-- Botón de Filtrar y Limpiar -->
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">Filtrar</button>
+                            <a href="{{ route('my-appointments') }}" class="btn btn-secondary">Limpiar</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
             <!-- Mostrar mensajes de éxito o error -->
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -170,6 +266,10 @@
                                             <span class="badge bg-warning">{{ $citaItem->estadoCita->estado_nombre }}</span>
                                         @elseif($citaItem->estadoCita->estado_nombre == 'Cancelada')
                                             <span class="badge bg-secondary">{{ $citaItem->estadoCita->estado_nombre }}</span>
+                                        @elseif($citaItem->estadoCita->estado_nombre == 'Expirada')
+                                            <span class="badge bg-danger">{{ $citaItem->estadoCita->estado_nombre }}</span>
+                                        @elseif($citaItem->estadoCita->estado_nombre == 'Completada')
+                                            <span class="badge bg-info text-dark">{{ $citaItem->estadoCita->estado_nombre }}</span>
                                         @else
                                             <span class="badge bg-secondary">{{ $citaItem->estadoCita->estado_nombre }}</span>
                                         @endif
@@ -221,36 +321,35 @@
                                                     <input type="hidden" name="action" value="cancel">
                                                     <button type="submit" class="btn btn-sm btn-danger">Cancelar</button>
                                                 </form>
-                                                @elseif($citaItem->estadoCita->estado_nombre == 'Expirada')
-                                                    <!-- Cita expirada: no mostrar botones -->
-                                                    <span class="text-muted">Cita expirada</span>
+                                            @elseif($citaItem->estadoCita->estado_nombre == 'Expirada')
+                                                <!-- Cita expirada: no mostrar botones -->
+                                                <span class="text-muted">Cita expirada</span>
                                             @elseif($citaItem->estadoCita->estado_nombre == 'Cancelada')
                                                 <!-- Opciones para citas canceladas -->
                                                 <!-- No se muestran botones -->
                                             @endif
                                         @else
-                                            @if($citaItem->estadoCita->estado_nombre == 'Pendiente' || $citaItem->estadoCita->estado_nombre == 'Confirmada')
-                                            
-                                            @php
-                                            $appointmentDateTime = \Carbon\Carbon::parse($citaItem->cta_fecha . ' ' . $citaItem->cta_hora);
-                                            $now = \Carbon\Carbon::now();
-                                            $diffInHours = $now->floatDiffInHours($appointmentDateTime, false);
-                                        @endphp
-    
-                                        
-                                        @if($diffInHours > 3)
-                                            <!-- Mostrar botón Editar habilitado -->
-                                            <a href="{{ route('citas.edit', $citaItem->cta_id) }}" class="btn btn-sm btn-warning">Editar</a>
-                                        @else
-                                            <!-- Mostrar botón Editar deshabilitado con tooltip explicativo -->
-                                            <button 
-                                                class="btn btn-sm btn-warning" 
-                                                disabled 
-                                                title="No puedes editar la cita a menos de 3 horas de su inicio"
-                                            >
-                                                Editar
-                                            </button>
-                                        @endif        
+                                            @if(in_array($citaItem->estadoCita->estado_nombre, ['Pendiente', 'Confirmada']))
+                                                
+                                                @php
+                                                    $appointmentDateTime = \Carbon\Carbon::parse($citaItem->cta_fecha . ' ' . $citaItem->cta_hora);
+                                                    $now = \Carbon\Carbon::now();
+                                                    $diffInHours = $now->floatDiffInHours($appointmentDateTime, false);
+                                                @endphp
+
+                                                @if($diffInHours > 3)
+                                                    <!-- Mostrar botón Editar habilitado -->
+                                                    <a href="{{ route('citas.edit', $citaItem->cta_id) }}" class="btn btn-sm btn-warning">Editar</a>
+                                                @else
+                                                    <!-- Mostrar botón Editar deshabilitado con tooltip explicativo -->
+                                                    <button 
+                                                        class="btn btn-sm btn-warning" 
+                                                        disabled 
+                                                        title="No puedes editar la cita a menos de 3 horas de su inicio"
+                                                    >
+                                                        Editar
+                                                    </button>
+                                                @endif        
 
                                                 <!-- Botón para Cancelar siempre visible -->
                                                 <form action="{{ route('appointments.reject', $citaItem->cta_id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta cita?');" style="display:inline-block;">
@@ -258,6 +357,9 @@
                                                     <input type="hidden" name="action" value="cancel">
                                                     <button type="submit" class="btn btn-sm btn-danger">Cancelar</button>
                                                 </form>
+                                            @elseif($citaItem->estadoCita->estado_nombre == 'Expirada')
+                                                <!-- Cita expirada: no mostrar botones -->
+                                                <span class="text-muted">Cita expirada</span>
                                             @elseif($citaItem->estadoCita->estado_nombre == 'Cancelada')
                                                 <!-- Opciones para citas canceladas -->
                                                 <!-- No se muestran botones -->
@@ -313,7 +415,7 @@
 
             <!-- Paginación -->
             <div class="d-flex justify-content-center mt-4">
-                {{ $citas->onEachSide(1)->links() }}
+                {{ $citas->links() }}
             </div>
         </div>
     </section>

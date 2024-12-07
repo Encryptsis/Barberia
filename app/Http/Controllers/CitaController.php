@@ -10,7 +10,9 @@ use App\Models\AppointmentLimit;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PtsTransaction;
 use Illuminate\Support\Facades\Log;
-use \Carbon\Carbon;
+use Carbon\Carbon;
+use App\Models\EstadoCita; // Asegúrate de tener este modelo
+use App\Models\Usuario;
 
 //Manejará las operaciones CRUD básicas de las citas, así como la creación de nuevas citas y la visualización de la agenda.
 class CitaController extends Controller
@@ -325,7 +327,7 @@ class CitaController extends Controller
         }
     }
     
-    public function miAgenda()
+    public function miAgenda(Request $request)
     {
         // Obtener el usuario autenticado
         $user = Auth::user();
@@ -346,64 +348,201 @@ class CitaController extends Controller
         $isWorker = in_array($role, ['Administrador', 'Barbero', 'Facialista']);
         $isClient = $role === 'Cliente';
     
-        // Obtener las citas del usuario
+        // Obtener los estados disponibles
+        $estados = EstadoCita::all();
+    
+        // Obtener todos los servicios
+        $servicios = Servicio::all();
+    
+        // Inicializar las variables $clientes y $profesionales como colecciones vacías
+        $clientes = collect();
+        $profesionales = collect();
+    
+        // Obtener clientes o profesionales según el rol
         if ($isWorker) {
-            // Obtener las citas donde el usuario es el profesional
-            $citas = Cita::where('cta_profesional_id', $user->usr_id)
-                         ->with(['cliente', 'servicios', 'estadoCita'])
-                         ->orderBy('cta_fecha', 'desc')
-                         ->paginate(10); // Paginación, ajusta el número según tus necesidades
-        } else { // Si es cliente
-            // Obtener las citas donde el usuario es el cliente
-            $citas = Cita::where('cta_cliente_id', $user->usr_id)
-                         ->with(['profesional', 'servicios', 'estadoCita'])
-                         ->orderBy('cta_fecha', 'desc')
-                         ->paginate(10); // Paginación
+            // Obtener lista de clientes
+            $clientes = Usuario::whereHas('role', function($q) {
+                $q->where('rol_nombre', 'Cliente');
+            })->get();
+        } else {
+            // Obtener lista de profesionales (excluir Administradores si es necesario)
+            $profesionales = Usuario::whereHas('role', function($q) {
+                $q->whereIn('rol_nombre', ['Barbero', 'Facialista', 'Administrador']); // Ajusta según tus roles
+            })->get();
         }
-
-        $estadoExpirada = DB::table('estados_citas')->where('estado_nombre', 'Expirada')->value('estado_id');
-
-            // Actualizar las citas expiradas
-    foreach ($citas as $cita) {
-        if ($cita->cta_activa && 
-            !in_array($cita->estadoCita->estado_nombre, ['Cancelada','Completada','Expirada'])) {
-            
-            // Verificar si la cita ya pasó
-            $appointmentTime = Carbon::parse($cita->cta_fecha . ' ' . $cita->cta_hora);
-            $now = Carbon::now();
-
-            if ($now->greaterThan($appointmentTime)) {
-                // La cita ya pasó y no está cancelada ni completada
-                // Cambiamos a estado Expirada y desactivamos
-                $cita->cta_estado_id = $estadoExpirada;
-                $cita->cta_activa = false;
-                $cita->save();
+    
+        // Obtener parámetros de filtrado desde la solicitud
+        $estadoSeleccionados = $request->input('estado', []); // Array de estado_ids
+        $fechaSeleccionada = $request->input('fecha'); // Fecha exacta
+        $servicioSeleccionado = $request->input('servicio_id'); // ID del servicio
+        $clienteSeleccionado = $request->input('cliente_id'); // ID del cliente (si es trabajador)
+        $profesionalSeleccionado = $request->input('profesional_id'); // ID del profesional (si es cliente)
+        $sortBy = $request->input('sort_by', 'cta_fecha'); // Campo para ordenar
+        $sortDir = $request->input('sort_dir', 'asc'); // Dirección de ordenamiento
+    
+        // Iniciar la consulta base
+        if ($isWorker) {
+            $query = Cita::where('cta_profesional_id', $user->usr_id)
+                         ->with(['cliente', 'servicios', 'estadoCita']);
+        } else {
+            $query = Cita::where('cta_cliente_id', $user->usr_id)
+                         ->with(['profesional', 'servicios', 'estadoCita']);
+        }
+    
+        // Aplicar filtros
+        if (!empty($estadoSeleccionados)) {
+            $query->whereIn('cta_estado_id', $estadoSeleccionados);
+        }
+    
+        if (!empty($fechaSeleccionada)) {
+            $query->where('cta_fecha', $fechaSeleccionada);
+        }
+    
+        if (!empty($servicioSeleccionado)) {
+            $query->whereHas('servicios', function($q) use ($servicioSeleccionado) {
+                $q->where('srv_id', $servicioSeleccionado);
+            });
+        }
+    
+        if ($isWorker && !empty($clienteSeleccionado)) {
+            $query->where('cta_cliente_id', $clienteSeleccionado);
+        }
+    
+        if (!$isWorker && !empty($profesionalSeleccionado)) {
+            $query->where('cta_profesional_id', $profesionalSeleccionado);
+        }
+    
+        // Agregar sumatoria de costos para ordenar
+        $query->withSum('servicios as costo_total', 'srv_precio');
+    
+        // Ordenamiento
+        if ($sortBy === 'estado') {
+            // Orden personalizado por estado
+            // Define un orden específico de prioridad si lo deseas
+            // Por ejemplo: Pendiente > Confirmada > Completada > Cancelada > Expirada
+            $ordenEstado = ['Pendiente', 'Confirmada', 'Completada', 'Cancelada', 'Expirada'];
+            $query->join('estados_citas', 'citas.cta_estado_id', '=', 'estados_citas.estado_id')
+                  ->orderByRaw('FIELD(estados_citas.estado_nombre, "Pendiente", "Confirmada", "Completada", "Cancelada", "Expirada") ' . $sortDir)
+                  ->select('citas.*'); // Asegurarse de seleccionar las columnas correctas
+        } elseif ($sortBy === 'costo') {
+            $query->orderBy('costo_total', $sortDir);
+        } else { // Default sorting by fecha
+            $query->orderBy('cta_fecha', $sortDir)->orderBy('cta_hora', $sortDir);
+        }
+    
+        // Paginación
+        $citas = $query->paginate(10)->appends($request->all());
+    
+        // Obtener estado Expirada
+        $estadoExpirada = EstadoCita::where('estado_nombre', 'Expirada')->value('estado_id');
+    
+        // Actualizar las citas expiradas
+        foreach ($citas as $cita) {
+            if ($cita->cta_activa && 
+                !in_array($cita->estadoCita->estado_nombre, ['Cancelada','Completada','Expirada'])) {
+                
+                // Verificar si la cita ya pasó
+                $appointmentTime = Carbon::parse($cita->cta_fecha . ' ' . $cita->cta_hora);
+                $now = Carbon::now();
+    
+                if ($now->greaterThan($appointmentTime)) {
+                    // La cita ya pasó y no está cancelada ni completada
+                    // Cambiamos a estado Expirada y desactivamos
+                    $cita->cta_estado_id = $estadoExpirada;
+                    $cita->cta_activa = false;
+                    $cita->save();
+                }
             }
         }
-    }
+    
         // Recalcular citas luego de actualizar las expiradas (opcional)
-    // Si quieres ver los cambios en la misma carga puedes volver a cargar las citas:
-    if ($isWorker) {
-        $citas = Cita::where('cta_profesional_id', $user->usr_id)
-                     ->with(['cliente', 'servicios', 'estadoCita'])
-                     ->orderBy('cta_fecha', 'desc')
-                     ->paginate(10);
-    } else {
-        $citas = Cita::where('cta_cliente_id', $user->usr_id)
-                     ->with(['profesional', 'servicios', 'estadoCita'])
-                     ->orderBy('cta_fecha', 'desc')
-                     ->paginate(10);
-    }
-        // Obtener los límites globales y por categoría
+        // Si quieres ver los cambios en la misma carga puedes volver a cargar las citas:
+        if ($isWorker) {
+            $query = Cita::where('cta_profesional_id', $user->usr_id)
+                         ->with(['cliente', 'servicios', 'estadoCita']);
+    
+            // Aplicar filtros nuevamente
+            if (!empty($estadoSeleccionados)) {
+                $query->whereIn('cta_estado_id', $estadoSeleccionados);
+            }
+    
+            if (!empty($fechaSeleccionada)) {
+                $query->where('cta_fecha', $fechaSeleccionada);
+            }
+    
+            if (!empty($servicioSeleccionado)) {
+                $query->whereHas('servicios', function($q) use ($servicioSeleccionado) {
+                    $q->where('srv_id', $servicioSeleccionado);
+                });
+            }
+    
+            if (!empty($clienteSeleccionado)) {
+                $query->where('cta_cliente_id', $clienteSeleccionado);
+            }
+    
+            // Agregar sumatoria de costos para ordenar
+            $query->withSum('servicios as costo_total', 'srv_precio');
+    
+            // Ordenamiento
+            if ($sortBy === 'estado') {
+                $query->join('estados_citas', 'citas.cta_estado_id', '=', 'estados_citas.estado_id')
+                      ->orderByRaw('FIELD(estados_citas.estado_nombre, "Pendiente", "Confirmada", "Completada", "Cancelada", "Expirada") ' . $sortDir)
+                      ->select('citas.*');
+            } elseif ($sortBy === 'costo') {
+                $query->orderBy('costo_total', $sortDir);
+            } else { // Default sorting by fecha
+                $query->orderBy('cta_fecha', $sortDir)->orderBy('cta_hora', $sortDir);
+            }
+    
+            $citas = $query->paginate(10)->appends($request->all());
+        } else {
+            $query = Cita::where('cta_cliente_id', $user->usr_id)
+                         ->with(['profesional', 'servicios', 'estadoCita']);
+    
+            // Aplicar filtros nuevamente
+            if (!empty($estadoSeleccionados)) {
+                $query->whereIn('cta_estado_id', $estadoSeleccionados);
+            }
+    
+            if (!empty($fechaSeleccionada)) {
+                $query->where('cta_fecha', $fechaSeleccionada);
+            }
+    
+            if (!empty($servicioSeleccionado)) {
+                $query->whereHas('servicios', function($q) use ($servicioSeleccionado) {
+                    $q->where('srv_id', $servicioSeleccionado);
+                });
+            }
+    
+            if (!empty($profesionalSeleccionado)) {
+                $query->where('cta_profesional_id', $profesionalSeleccionado);
+            }
+    
+            // Agregar sumatoria de costos para ordenar
+            $query->withSum('servicios as costo_total', 'srv_precio');
+    
+            // Ordenamiento
+            if ($sortBy === 'estado') {
+                $query->join('estados_citas', 'citas.cta_estado_id', '=', 'estados_citas.estado_id')
+                      ->orderByRaw('FIELD(estados_citas.estado_nombre, "Pendiente", "Confirmada", "Completada", "Cancelada", "Expirada") ' . $sortDir)
+                      ->select('citas.*');
+            } elseif ($sortBy === 'costo') {
+                $query->orderBy('costo_total', $sortDir);
+            } else { // Default sorting by fecha
+                $query->orderBy('cta_fecha', $sortDir)->orderBy('cta_hora', $sortDir);
+            }
+    
+            $citas = $query->paginate(10)->appends($request->all());
+        }
+    
+        // Obtener límites y contadores como antes
         $globalLimit = AppointmentLimit::whereNull('cat_id')->first();
         $categoryLimits = AppointmentLimit::whereNotNull('cat_id')->with('categoria_servicio')->get();
     
-        // Contar las citas activas globales del usuario
         $activeGlobalAppointmentsCount = Cita::where('cta_cliente_id', $user->usr_id)
             ->where('cta_activa', true)
             ->count();
     
-        // Contar las citas activas por categoría del usuario (contando servicios)
         $activeCategoryAppointmentsCount = Cita::where('cta_cliente_id', $user->usr_id)
             ->where('cta_activa', true)
             ->whereHas('servicios', function($query) {
@@ -421,37 +560,21 @@ class CitaController extends Controller
                 return $servicios->count();
             });
     
-        // Calcula las citas restantes globales, mínimo 0
         $remainingGlobalAppointments = $globalLimit 
             ? max($globalLimit->limite_diario - $activeGlobalAppointmentsCount, 0) 
             : null;
     
-        // Obtener los límites por categoría y keyBy cat_id
         $categoryLimits = AppointmentLimit::whereNotNull('cat_id')
             ->with('categoria_servicio')
             ->get()
             ->keyBy(function($item) {
                 return (int)$item->cat_id;
             });
-
-        // Calcula las citas restantes por categoría y asegurar que las claves sean cat_id
+    
         $remainingCategoryAppointments = $categoryLimits->map(function ($limit, $catId) use ($activeCategoryAppointmentsCount) {
             $activeCount = $activeCategoryAppointmentsCount->get((int) $catId, 0);
             return max($limit->limite_diario - $activeCount, 0);
         });
-
-    
-        // Añadir logs para depuración
-        \Log::info('Usuario ID: ' . $user->usr_id);
-        \Log::info('Citas Globales Activas: ' . $activeGlobalAppointmentsCount);
-        \Log::info('Citas Restantes Globales: ' . $remainingGlobalAppointments);
-    
-        foreach ($categoryLimits as $limit) {
-            $categoryName = $limit->categoria_servicio->cat_nombre;
-            $active = $activeCategoryAppointmentsCount->get((int) $limit->cat_id, 0);
-            $remaining = $remainingCategoryAppointments->get((int) $limit->cat_id, 0);
-            \Log::info("Categoría: $categoryName | Activas: $active | Restantes: $remaining");
-        }
     
         // Pasar variables adicionales a la vista
         return view('appointments.user_appointments', compact(
@@ -461,12 +584,18 @@ class CitaController extends Controller
             'userPoints',
             'globalLimit',
             'remainingGlobalAppointments',
-            'activeGlobalAppointmentsCount', // Añadido
+            'activeGlobalAppointmentsCount',
             'categoryLimits',
             'remainingCategoryAppointments',
-            'activeCategoryAppointmentsCount' // Añadido
+            'activeCategoryAppointmentsCount',
+            'servicios',
+            'clientes',
+            'profesionales',
+            'estados'
         ));
     }
+    
+    
 
     public function confirm(Cita $cita)
     {
