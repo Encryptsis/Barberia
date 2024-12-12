@@ -24,7 +24,7 @@ class AppointmentLimitsSeeder extends Seeder
         DB::table('appointment_limits')->insert([
             [
                 'cat_id' => null, // Límite global
-                'limite_diario' => 5, // Límite global de citas activas por usuario
+                'limite_diario' => 4, // Límite global de citas activas por usuario
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
