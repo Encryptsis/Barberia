@@ -31,6 +31,8 @@ class Usuario extends Authenticatable
         'usr_ultimo_acceso',
         'usr_points',
         'free_appointment_available', // Añadido
+        'stripe_customer_id', // Añadido
+        'stripe_payment_method_id', // Añadido
     ];
 
     protected $hidden = [
@@ -49,9 +51,6 @@ class Usuario extends Authenticatable
         return $this->role && strcasecmp($this->role->rol_nombre, 'Administrador') === 0;
     }
 
-// Usuario.php
-
-// app/Models/Usuario.php
 
 public function addPoints($amount, $description)
 {

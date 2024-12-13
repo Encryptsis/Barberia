@@ -6,6 +6,8 @@ use App\Http\Controllers\ArrivalController;
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\PaymentController;
+
 
 
 // Rutas de Citas (Appointments)
@@ -30,6 +32,9 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/informacion/{id}', [ClienteController::class, 'show'])->name('informacion.show');
+
+    // Ruta para aplicar la multa
+    Route::post('/payment/charge-fine/{cita}', [PaymentController::class, 'chargeFine'])->name('payment.chargeFine');
 });
 
 // Ruta para Agendar una cita de parte del cliente

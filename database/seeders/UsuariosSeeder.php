@@ -32,6 +32,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'maria.garcia',
@@ -48,6 +50,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'carmen.lopez',
@@ -64,6 +68,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'antonio.martinez',
@@ -80,6 +86,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
 
             // Usuarios para el rol Cliente
@@ -98,6 +106,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => 'cus_1234567890abcdef', // Ejemplo de ID de cliente de Stripe
+                'stripe_payment_method_id' => 'pm_visa_4242424242424242', // Ejemplo de ID de método de pago
             ],
             [
                 'usr_username' => 'laura.martin',
@@ -114,6 +124,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => 'cus_abcdef1234567890',
+                'stripe_payment_method_id' => 'pm_mastercard_5555555555554444',
             ],
             [
                 'usr_username' => 'elena.diaz',
@@ -130,6 +142,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => 'cus_0987654321fedcba',
+                'stripe_payment_method_id' => 'pm_mastercard_5200828282828210',
             ],
             [
                 'usr_username' => 'miguel.navarro',
@@ -146,6 +160,81 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => 'cus_a1b2c3d4e5f6g7h8',
+                'stripe_payment_method_id' => 'pm_amex_378282246310005',
+            ],
+            // Más Clientes Agregados
+            [
+                'usr_username' => 'ana.martinez',
+                'usr_password' => Hash::make('ClientePass!2024'),
+                'usr_nombre_completo' => 'Ana Martínez López',
+                'usr_correo_electronico' => 'ana.martinez@cliente.com',
+                'usr_telefono' => '+34 633 123 456',
+                'usr_foto_perfil' => 'ana_martinez.jpg',
+                'usr_activo' => true,
+                'usr_rol_id' => 2, // ID del rol Cliente
+                'usr_points' => 25,
+                'usr_recuperacion_token' => null,
+                'usr_recuperacion_expira' => null,
+                'usr_ultimo_acceso' => now(),
+                'usr_created_at' => now(),
+                'usr_updated_at' => now(),
+                'stripe_customer_id' => 'cus_z9y8x7w6v5u4t3s2',
+                'stripe_payment_method_id' => 'pm_discover_6011111111111117',
+            ],
+            [
+                'usr_username' => 'diego.rojas',
+                'usr_password' => Hash::make('ClientePass!2024'),
+                'usr_nombre_completo' => 'Diego Rojas Pérez',
+                'usr_correo_electronico' => 'diego.rojas@cliente.com',
+                'usr_telefono' => '+34 644 234 567',
+                'usr_foto_perfil' => 'diego_rojas.jpg',
+                'usr_activo' => true,
+                'usr_rol_id' => 2, // ID del rol Cliente
+                'usr_points' => 15,
+                'usr_recuperacion_token' => null,
+                'usr_recuperacion_expira' => null,
+                'usr_ultimo_acceso' => now(),
+                'usr_created_at' => now(),
+                'usr_updated_at' => now(),
+                'stripe_customer_id' => 'cus_l1m2n3o4p5q6r7s8',
+                'stripe_payment_method_id' => 'pm_unionpay_6200000000000005',
+            ],
+            [
+                'usr_username' => 'lucia.gomez',
+                'usr_password' => Hash::make('ClientePass!2024'),
+                'usr_nombre_completo' => 'Lucía Gómez Ruiz',
+                'usr_correo_electronico' => 'lucia.gomez@cliente.com',
+                'usr_telefono' => '+34 655 345 678',
+                'usr_foto_perfil' => 'lucia_gomez.jpg',
+                'usr_activo' => true,
+                'usr_rol_id' => 2, // ID del rol Cliente
+                'usr_points' => 10,
+                'usr_recuperacion_token' => null,
+                'usr_recuperacion_expira' => null,
+                'usr_ultimo_acceso' => now(),
+                'usr_created_at' => now(),
+                'usr_updated_at' => now(),
+                'stripe_customer_id' => 'cus_m9n8b7v6c5x4z3a2',
+                'stripe_payment_method_id' => 'pm_diners_3056930009020004',
+            ],
+            [
+                'usr_username' => 'josefina.lara',
+                'usr_password' => Hash::make('ClientePass!2024'),
+                'usr_nombre_completo' => 'Josefina Lara Morales',
+                'usr_correo_electronico' => 'josefina.lara@cliente.com',
+                'usr_telefono' => '+34 666 456 789',
+                'usr_foto_perfil' => 'josefina_lara.jpg',
+                'usr_activo' => true,
+                'usr_rol_id' => 2, // ID del rol Cliente
+                'usr_points' => 35,
+                'usr_recuperacion_token' => null,
+                'usr_recuperacion_expira' => null,
+                'usr_ultimo_acceso' => now(),
+                'usr_created_at' => now(),
+                'usr_updated_at' => now(),
+                'stripe_customer_id' => 'cus_p1o2i3u4y5t6r7e8',
+                'stripe_payment_method_id' => 'pm_jcb_3566002020360505',
             ],
 
             // Usuarios para el rol Barbero
@@ -164,6 +253,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'pedro.lopez',
@@ -180,6 +271,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'sofia.ramirez',
@@ -196,6 +289,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'alejandro.molina',
@@ -212,6 +307,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
 
             // Usuarios para el rol Facialista
@@ -230,6 +327,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'luis.gonzalez',
@@ -246,6 +345,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'laura.blanco',
@@ -262,6 +363,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'javier.sanchez',
@@ -278,6 +381,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
         ]);
     }

@@ -35,6 +35,10 @@ class CreateUsuariosTable extends Migration
             $table->dateTime('usr_recuperacion_expira')->nullable();
             $table->dateTime('usr_ultimo_acceso')->nullable();
             
+            // **Campos para Stripe**
+            $table->string('stripe_customer_id')->nullable();
+            $table->string('stripe_payment_method_id')->nullable();
+            
             // Claves Foráneas
             $table->foreign('usr_rol_id')->references('rol_id')->on('roles')->onDelete('set null');
             
@@ -53,6 +57,8 @@ class CreateUsuariosTable extends Migration
         Schema::table('usuarios', function (Blueprint $table) {
             $table->dropForeign(['usr_rol_id']);
             $table->dropIndex('idx_usr_rol_id');
+            // Eliminar los campos de Stripe
+            $table->dropColumn(['stripe_customer_id', 'stripe_payment_method_id']);
         });
         Schema::dropIfExists('usuarios');
     }

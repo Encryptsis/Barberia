@@ -11,27 +11,20 @@
     --overlay-color: rgba(0, 0, 0, 0.5); /* Color de la capa opaca */
 }
 
+
+
 body {
     background-image: url('/resources/images/accesos.jpeg'); /* Reemplaza con la ruta de tu imagen */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: fixed;
+   
     font-size: var(--normal-font-size);
     font-family: var(--body-font);
-    position: relative;
+    
 }
 
-body::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    background-color: var(--overlay-color);
-    z-index: -1;
-}
+
 
 .wrapper {
     display: flex;
@@ -39,8 +32,8 @@ body::before {
     align-items: center;
     min-height: 100vh;
     text-align: center;
-    position: relative;
-    z-index: 1;
+    
+   
 }
 
 .auth-content {

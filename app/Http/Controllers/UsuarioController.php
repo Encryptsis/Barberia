@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage; // Importación añadida
 use Illuminate\Support\Facades\Log;
+use Stripe\Stripe;
+use Stripe\Customer;
+use Stripe\SetupIntent;
+use Stripe\PaymentMethod;
 
 class UsuarioController extends Controller
 {
@@ -18,8 +22,19 @@ class UsuarioController extends Controller
      */
     public function create()
     {
-        return view('auth.register');
+        Stripe::setApiKey(config('stripe.secret'));
+    
+        // Crear un SetupIntent para capturar el método de pago
+        $setupIntent = SetupIntent::create([
+            'payment_method_types' => ['card'],
+        ]);
+    
+        return view('auth.register', [
+            'stripeKey' => config('stripe.key'),
+            'clientSecret' => $setupIntent->client_secret,
+        ]);
     }
+    
 
     /**
      * Procesar y almacenar el nuevo usuario en la base de datos.
@@ -33,17 +48,34 @@ class UsuarioController extends Controller
             'usr_nombre_completo' => 'required|string|max:100',
             'usr_telefono' => 'nullable|string|max:20',
             'usr_correo_electronico' => 'required|email|max:100|unique:usuarios,usr_correo_electronico',
+            'payment_method_id' => 'required|string', // Nuevo campo para Payment Method de Stripe
         ]);
-    
+
         // Obtener el rol 'Cliente' dinámicamente
         $clienteRole = Role::where('rol_nombre', 'Cliente')->first();
-    
+
         if (!$clienteRole) {
             // Manejar el error si el rol 'Cliente' no existe
             return redirect()->back()->with('error', 'El rol "Cliente" no está definido en el sistema.');
         }
-    
-        // Crear el nuevo usuario con rol 'Cliente'
+
+        // Crear el Customer en Stripe
+        Stripe::setApiKey(config('stripe.secret')); // Usa el archivo de configuración
+        try {
+            $customer = Customer::create([
+                'email' => $validatedData['usr_correo_electronico'],
+                'name' => $validatedData['usr_nombre_completo'],
+                'payment_method' => $validatedData['payment_method_id'],
+                'invoice_settings' => [
+                    'default_payment_method' => $validatedData['payment_method_id'],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al crear el Customer en Stripe: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocurrió un error al procesar tu método de pago. Inténtalo de nuevo.');
+        }
+
+        // Crear el nuevo usuario con rol 'Cliente' y datos de Stripe
         $usuario = Usuario::create([
             'usr_username' => $validatedData['usr_username'],
             'usr_password' => Hash::make($validatedData['usr_password']),
@@ -52,11 +84,13 @@ class UsuarioController extends Controller
             'usr_correo_electronico' => $validatedData['usr_correo_electronico'],
             'usr_activo' => true,
             'usr_rol_id' => $clienteRole->rol_id, // Asigna el rol 'Cliente' dinámicamente
+            'stripe_customer_id' => $customer->id, // Guarda el Customer ID de Stripe
+            'stripe_payment_method_id' => $validatedData['payment_method_id'], // Guarda el Payment Method ID de Stripe
         ]);
-    
+
         // Autenticar al usuario recién registrado
         Auth::login($usuario);
-    
+
         // Verificar si el usuario está autenticado
         if (Auth::check()) {
             // Redireccionar a la página de inicio con un mensaje de éxito
