@@ -106,8 +106,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
-                'stripe_customer_id' => 'cus_1234567890abcdef', // Ejemplo de ID de cliente de Stripe
-                'stripe_payment_method_id' => 'pm_visa_4242424242424242', // Ejemplo de ID de método de pago
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'laura.martin',
@@ -124,8 +124,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
-                'stripe_customer_id' => 'cus_abcdef1234567890',
-                'stripe_payment_method_id' => 'pm_mastercard_5555555555554444',
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'elena.diaz',
@@ -142,8 +142,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
-                'stripe_customer_id' => 'cus_0987654321fedcba',
-                'stripe_payment_method_id' => 'pm_mastercard_5200828282828210',
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'miguel.navarro',
@@ -160,8 +160,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
-                'stripe_customer_id' => 'cus_a1b2c3d4e5f6g7h8',
-                'stripe_payment_method_id' => 'pm_amex_378282246310005',
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             // Más Clientes Agregados
             [
@@ -179,8 +179,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
-                'stripe_customer_id' => 'cus_z9y8x7w6v5u4t3s2',
-                'stripe_payment_method_id' => 'pm_discover_6011111111111117',
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'diego.rojas',
@@ -197,8 +197,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
-                'stripe_customer_id' => 'cus_l1m2n3o4p5q6r7s8',
-                'stripe_payment_method_id' => 'pm_unionpay_6200000000000005',
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'lucia.gomez',
@@ -215,8 +215,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
-                'stripe_customer_id' => 'cus_m9n8b7v6c5x4z3a2',
-                'stripe_payment_method_id' => 'pm_diners_3056930009020004',
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
             [
                 'usr_username' => 'josefina.lara',
@@ -233,8 +233,8 @@ class UsuariosSeeder extends Seeder
                 'usr_ultimo_acceso' => now(),
                 'usr_created_at' => now(),
                 'usr_updated_at' => now(),
-                'stripe_customer_id' => 'cus_p1o2i3u4y5t6r7e8',
-                'stripe_payment_method_id' => 'pm_jcb_3566002020360505',
+                'stripe_customer_id' => null,
+                'stripe_payment_method_id' => null,
             ],
 
             // Usuarios para el rol Barbero

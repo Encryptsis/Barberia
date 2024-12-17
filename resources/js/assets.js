@@ -21,6 +21,16 @@ import sloganImagenJpg from '../images/slogan_imagen.jpg';
 import wildbeerBarbershopBarJpg from '../images/wildbeer_barbershp_bar.jpg';
 import wildbeerBarbershopBar2Jpg from '../images/wildbeer_barbershp_bar.jpeg';
 import workspaceJpg from '../images/workspace.jpg';
+import prueba1jpeg from '../images/prueba1.jpeg';
+import prueba2jpg from '../images/prueba2.jpg';
+import prueba3jpg from '../images/prueba3.jpg';
+import prueba4jpg from '../images/prueba4.jpg';
+import prueba5jpg from '../images/prueba5.jpg';
+import barpng from '../images/bar.png';
+
+
+
+
 
 // resources/js/assets.js
 

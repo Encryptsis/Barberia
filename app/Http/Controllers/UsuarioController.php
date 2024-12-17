@@ -23,18 +23,17 @@ class UsuarioController extends Controller
     public function create()
     {
         Stripe::setApiKey(config('stripe.secret'));
-    
+
         // Crear un SetupIntent para capturar el método de pago
         $setupIntent = SetupIntent::create([
             'payment_method_types' => ['card'],
         ]);
-    
+
         return view('auth.register', [
             'stripeKey' => config('stripe.key'),
             'clientSecret' => $setupIntent->client_secret,
         ]);
     }
-    
 
     /**
      * Procesar y almacenar el nuevo usuario en la base de datos.
@@ -100,7 +99,6 @@ class UsuarioController extends Controller
             return redirect()->route('login')->with('error', 'No se pudo iniciar sesión automáticamente. Por favor, inicia sesión.');
         }
     }
-    
 
     /**
      * Mostrar el formulario de inicio de sesión.
@@ -153,19 +151,30 @@ class UsuarioController extends Controller
      */
     public function perfil($username)
     {
-        $usuario = Auth::user(); // Obtener el usuario autenticado
+        $usuario = Auth::user(); 
 
-        // Verificar si el usuario está autenticado
         if (!$usuario) {
             return redirect()->route('login')->with('error', 'Debes iniciar sesión para acceder a tu perfil.');
         }
 
-        // Verificar si el nombre de usuario en la URL coincide con el usuario autenticado
         if ($usuario->usr_username !== $username) {
             return redirect()->route('perfil.usuario', ['username' => $usuario->usr_username])->with('error', 'No tienes permiso para acceder a este perfil.');
         }
 
-        return view('profile.profile_user', compact('usuario'));
+        Stripe::setApiKey(config('stripe.secret'));
+
+        try {
+            // Crear un SetupIntent para recolectar un nuevo método de pago
+            $setupIntent = SetupIntent::create([
+                'customer' => $usuario->stripe_customer_id,
+                'payment_method_types' => ['card'],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al crear SetupIntent en Stripe: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocurrió un error al preparar la actualización de tu método de pago.');
+        }
+
+        return view('profile.profile_user', compact('usuario', 'setupIntent'));
     }
 
     /**
@@ -174,51 +183,86 @@ class UsuarioController extends Controller
     public function actualizarPerfil(Request $request, $username)
     {
         $usuario = Auth::user(); // Obtener el usuario autenticado
-
-        // Verificar si el usuario está autenticado
+    
         if (!$usuario) {
             return redirect()->route('login')->with('error', 'Debes iniciar sesión para actualizar tu perfil.');
         }
-
-        // Verificar si el nombre de usuario en la URL coincide con el usuario autenticado
+    
         if ($usuario->usr_username !== $username) {
             return redirect()->route('perfil.usuario', ['username' => $usuario->usr_username])->with('error', 'No tienes permiso para actualizar este perfil.');
         }
-
+    
         // Validar los datos del formulario
         $validatedData = $request->validate([
             'usr_nombre_completo' => 'required|string|max:100',
             'usr_correo_electronico' => 'required|email|max:100|unique:usuarios,usr_correo_electronico,' . $usuario->usr_id . ',usr_id',
             'usr_telefono' => 'nullable|string|max:20',
-            'usr_foto_perfil' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Opcional: validar la foto
+            'usr_foto_perfil' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'new_payment_method_id' => 'nullable|string', // Nuevo método de pago opcional
         ]);
-
-        // Actualizar los campos
+    
+        // Actualizar datos del usuario
         $usuario->usr_nombre_completo = $validatedData['usr_nombre_completo'];
         $usuario->usr_correo_electronico = $validatedData['usr_correo_electronico'];
         $usuario->usr_telefono = $validatedData['usr_telefono'];
-
-        // Manejar la subida de la foto de perfil si existe
+    
+        // Manejar foto de perfil
         if ($request->hasFile('usr_foto_perfil')) {
-            // Eliminar la foto anterior si existe
             if ($usuario->usr_foto_perfil && Storage::disk('public')->exists($usuario->usr_foto_perfil)) {
                 Storage::disk('public')->delete($usuario->usr_foto_perfil);
             }
-
             $image = $request->file('usr_foto_perfil');
-            $name = time() . '_' . preg_replace('/\s+/', '_', $image->getClientOriginalName()); // Reemplaza espacios por guiones bajos
-            $path = $image->storeAs('fotos_perfil', $name, 'public'); // Almacenar en el disco 'public'
-
-            // Actualizar la ruta de la foto en el usuario
-            $usuario->usr_foto_perfil = $path; // 'fotos_perfil/filename.jpg'
+            $name = time() . '_' . preg_replace('/\s+/', '_', $image->getClientOriginalName());
+            $path = $image->storeAs('fotos_perfil', $name, 'public');
+            $usuario->usr_foto_perfil = $path;
         }
-
+    
+        // Procesar el nuevo método de pago si se recibió
+        if (!empty($validatedData['new_payment_method_id'])) {
+            // Configurar Stripe
+            \Stripe\Stripe::setApiKey(config('stripe.secret'));
+    
+            try {
+                // Si el usuario no tiene cliente en Stripe, crearlo
+                if (!$usuario->stripe_customer_id) {
+                    $customer = \Stripe\Customer::create([
+                        'email' => $usuario->usr_correo_electronico,
+                        'name' => $usuario->usr_nombre_completo,
+                    ]);
+                    $usuario->stripe_customer_id = $customer->id;
+                    $usuario->save(); // Guardar inmediatamente el stripe_customer_id
+                }
+    
+                // Recuperar el PaymentMethod y adjuntarlo al customer
+                $paymentMethod = \Stripe\PaymentMethod::retrieve($validatedData['new_payment_method_id']);
+                $paymentMethod->attach(['customer' => $usuario->stripe_customer_id]);
+    
+                // Establecer el método de pago como predeterminado
+                \Stripe\Customer::update($usuario->stripe_customer_id, [
+                    'invoice_settings' => [
+                        'default_payment_method' => $validatedData['new_payment_method_id'],
+                    ],
+                ]);
+    
+                // Actualizar en la base de datos
+                $usuario->stripe_payment_method_id = $validatedData['new_payment_method_id'];
+    
+            } catch (\Exception $e) {
+                \Log::error('Error al actualizar método de pago: ' . $e->getMessage());
+                return redirect()->back()->with('error', 'Ocurrió un error al actualizar el método de pago. Inténtalo de nuevo.');
+            }
+        }
+    
         $usuario->save();
-
+    
         return redirect()->route('perfil.usuario', ['username' => $usuario->usr_username])->with('success', 'Perfil actualizado exitosamente.');
     }
+    
+    
 
-
+    /**
+     * Mostrar la agenda del usuario.
+     */
     public function agenda()
     {
         $usuario = Auth::user(); // Obtener el usuario autenticado
@@ -229,14 +273,17 @@ class UsuarioController extends Controller
         // Obtener todos los servicios desde la base de datos
         $servicios = Servicio::all();
     
-        // Pasar los servicios, el usuario y los puntos a la vista 'usuario'
+        // Pasar los servicios, el usuario y los puntos a la vista 'agendas.client_schedule'
         return view('agendas.client_schedule', compact('usuario', 'servicios', 'userPoints'));
     }
-    
+
+    /**
+     * Obtener profesionales por servicio.
+     */
     public function getProfessionals($service_id)
     {
-
         Log::info("getProfessionals llamado con service_id: {$service_id}");
+
         // Validar que el servicio existe
         $servicio = Servicio::find($service_id);
         if (!$servicio) {
@@ -248,12 +295,10 @@ class UsuarioController extends Controller
         $profesionales = $servicio->usuarios()
             ->where('usuarios.usr_activo', 1) // Especificar la tabla para evitar ambigüedad
             ->get(['usuarios.usr_id', 'usuarios.usr_nombre_completo']);
+
         Log::info("Profesionales encontrados para service_id {$service_id}: " . $profesionales->count());
+
         // Devolver los profesionales en formato JSON
         return response()->json($profesionales);
     }
-    
-
-    
 }
-    

@@ -73,10 +73,30 @@
             0% { opacity: 1; }
             100% { opacity: 0.5; }
         }
+        /* Estilos para las alertas */
+        .alert {
+            max-width: 600px;
+            margin: 20px auto;
+            text-align: center;
+        }
     </style>
 
     <section class="secciones" style="margin-top: 3.5rem;">
         <h2 class="titulo-secciones">Welcome, {{ $usuario->usr_nombre_completo }}</h2>
+        
+        <!-- Flash messages -->
+        @if(session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <div class="text-center">
             @if($usuario->usr_foto_perfil && Storage::disk('public')->exists($usuario->usr_foto_perfil))
                 <img src="{{ Storage::url($usuario->usr_foto_perfil) }}?v={{ filemtime(storage_path('app/public/' . $usuario->usr_foto_perfil)) }}" alt="Foto del Usuario" class="foto-barbero" id="clienteFoto"/>
@@ -99,10 +119,11 @@
             </button>
         </div>
 
-         <div class="edit-form" id="editForm" style="display: none;">
+        <div class="edit-form" id="editForm">
             <h3 class="text-center">Edit Profile</h3>
             <form action="{{ route('perfil.actualizar', ['username' => $usuario->usr_username]) }}" method="POST" enctype="multipart/form-data" id="formEdit">
                 @csrf
+                <!-- Campos de Perfil -->
                 <div class="mb-3">
                     <label for="usr_nombre_completo" class="form-label">Name:</label>
                     <input 
@@ -164,10 +185,18 @@
                         </div>
                     @enderror
                 </div>
+
+                <!-- Campos de Método de Pago -->
+                <h3 class="text-center" style="margin-top:2rem;">Actualizar Método de Pago</h3>
+                <input type="hidden" name="new_payment_method_id" id="new_payment_method_id" value="">
+                <div id="card-element" class="form-control" style="background-color: white; color:#000; padding:10px;"></div>
+                <div id="card-errors" role="alert" style="color:red; margin-top:10px;"></div>
+
                 <button 
                     type="submit" 
                     class="btn btn-primary"
                     id="guardarCambios"
+                    style="margin-top:10px;"
                 >
                     Save
                 </button>
@@ -182,12 +211,13 @@
         </div>
     </section>
 
-
     <div class="estrella" id="estrella">&#9733;</div> <!-- Estrella brillante -->
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
     <script>
+        // Mostrar y ocultar el formulario de edición
         document.getElementById('editarPerfil').addEventListener('click', function() {
             document.getElementById('editForm').style.display = 'block'; // Mostrar el formulario
         });
@@ -195,15 +225,51 @@
         document.getElementById('cancelarEdicion').addEventListener('click', function() {
             document.getElementById('editForm').style.display = 'none'; // Ocultar el formulario
         });
-    </script>
-    <script>
+
+        // Mostrar la estrella si el premio está disponible
         document.addEventListener('DOMContentLoaded', function() {
-            // Verificar si el premio está disponible
             if (localStorage.getItem('premioDisponible') === 'true') {
                 document.getElementById('estrella').style.display = 'block'; // Mostrar estrella
                 localStorage.removeItem('premioDisponible'); // Eliminar estado para que no vuelva a aparecer
             }
         });
-    </script>
 
+        // Configuración de Stripe Elements
+        document.addEventListener('DOMContentLoaded', function() {
+            const stripe = Stripe('{{ config('stripe.key') }}');
+            const elements = stripe.elements();
+            const cardElement = elements.create('card', { style: { base: { color: '#000' } } });
+            cardElement.mount('#card-element');
+
+            const form = document.getElementById('formEdit');
+            const clientSecret = '{{ $setupIntent->client_secret }}';
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                // Confirmar el SetupIntent con la tarjeta ingresada
+                const { setupIntent, error } = await stripe.confirmCardSetup(clientSecret, {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: '{{ $usuario->usr_nombre_completo }}',
+                            email: '{{ $usuario->usr_correo_electronico }}'
+                        }
+                    }
+                });
+
+                if (error) {
+                    // Mostrar el error en la interfaz
+                    const cardErrors = document.getElementById('card-errors');
+                    cardErrors.textContent = error.message;
+                } else {
+                    // Obtener el payment_method_id y asignarlo al campo oculto
+                    document.getElementById('new_payment_method_id').value = setupIntent.payment_method;
+
+                    // Enviar el formulario
+                    form.submit();
+                }
+            });
+        });
+    </script>
 @endsection
